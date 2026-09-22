@@ -12,6 +12,7 @@ import sys
 import json
 import re
 import math
+import base64
 from datetime import datetime
 import pandas as pd
 import numpy as np
@@ -35,174 +36,230 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS
-st.markdown("""
-<style>
-    .main-title {
-        font-size: 2.1rem;
-        font-weight: 700;
-        color: #1E3A8A;
-        margin-bottom: 0.2rem;
-    }
-    .sub-title {
-        font-size: 1.05rem;
-        color: #4B5563;
-        margin-bottom: 1.5rem;
-    }
-    .metric-card {
-        background-color: #F8FAFC;
-        border: 1px solid #E2E8F0;
-        border-radius: 8px;
-        padding: 1rem;
-        text-align: center;
-    }
-    .badge-risk {
-        background-color: #FEE2E2;
-        color: #991B1B;
-        padding: 3px 8px;
-        border-radius: 4px;
-        font-weight: 600;
-        font-size: 0.85rem;
-    }
-    .badge-safe {
-        background-color: #DCFCE7;
-        color: #166534;
-        padding: 3px 8px;
-        border-radius: 4px;
-        font-weight: 600;
-        font-size: 0.85rem;
-    }
-    .badge-warn {
-        background-color: #FEF3C7;
-        color: #92400E;
-        padding: 3px 8px;
-        border-radius: 4px;
-        font-weight: 600;
-        font-size: 0.85rem;
-    }
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        padding: 10px 18px;
-        font-weight: 600;
-        border-radius: 6px 6px 0px 0px;
-    }
-</style>
-""", unsafe_allow_html=True)
-
 # -----------------------------------------------------------------------------
 # 2. 데이터 경로 및 헬퍼 함수
 # -----------------------------------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
-
-def get_data_path(filename):
-    """우선 data/ 폴더에서 찾고, 없으면 전체 경로에서 탐색"""
-    direct_path = os.path.join(DATA_DIR, filename)
-    if os.path.exists(direct_path):
-        return direct_path
-    # Fallback to local search
-    for root_dir, _, files in os.walk(BASE_DIR):
-        if filename in files:
-            return os.path.join(root_dir, filename)
-    return None
+IMG_DIR = os.path.join(BASE_DIR, "img")
 
 @st.cache_data
-def load_csv(filename, encoding="utf-8-sig"):
-    path = get_data_path(filename)
-    if path and os.path.exists(path):
-        try:
-            return pd.read_csv(path, encoding=encoding)
-        except Exception:
-            return pd.read_csv(path, encoding="cp949")
-    return None
+def get_image_base64(filename):
+    """최적화된 이미지를 우선 로드하고 base64로 반환"""
+    opt_name = filename.replace(".jpg", "-opt.jpg")
+    p_opt = os.path.join(IMG_DIR, opt_name)
+    p_orig = os.path.join(IMG_DIR, filename)
+    target = p_opt if os.path.exists(p_opt) else p_orig
+    if os.path.exists(target):
+        with open(target, "rb") as f:
+            return base64.b64encode(f.read()).decode("utf-8")
+    return ""
 
-@st.cache_data
-def load_excel(filename):
-    path = get_data_path(filename)
-    if path and os.path.exists(path):
-        return pd.read_excel(path)
-    return None
+# 이미지 Base64 프리로드
+b64_ship = get_image_base64("hero-ship.jpg")
+b64_globe = get_image_base64("dream-data-globe.jpg")
+b64_harbor = get_image_base64("ceo-vision-harbor.jpg")
 
-@st.cache_data
-def load_knowledge():
-    path = get_data_path("knowledge.json")
-    if path and os.path.exists(path):
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return []
-
-# -----------------------------------------------------------------------------
-# 3. 모델 캐싱 (블록 A & B)
-# -----------------------------------------------------------------------------
-@st.cache_resource
-def train_prediction_models():
-    df = load_csv("master_dataset.csv")
-    if df is None:
-        # Fallback dummy data if not found
-        df = pd.DataFrame({
-            "상품영문명": ["Hot Rolled Steel Sheet", "Aluminum Extruded Profile", "Urea Fertilizer"],
-            "사양": ["Thickness 2.0mm Coil", "6063-T5 Alloy", "46% Nitrogen Granular"],
-            "HS코드_정답": [7208.39, 7604.29, 3102.10],
-            "협력사_환경위반건수": [0, 2, 5],
-            "협력사_노동평가점수": [85, 60, 40],
-            "리스크_정답": ["정상", "위험", "위험"]
-        })
+# Custom CSS
+st.markdown("""
+<style>
+    /* 전체 폰트 및 모던 스타일링 */
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
+    html, body, [class*="css"] {
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    }
     
-    # 1. HS Code 추천 모델 (블록 A)
-    df["상품설명"] = df["상품영문명"].astype(str) + " " + df["사양"].astype(str)
-    tfidf = TfidfVectorizer(max_features=500, stop_words="english")
-    X_text = tfidf.fit_transform(df["상품설명"])
-    y_hs = df["HS코드_정답"].astype(str)
-    
-    X_train, X_test, y_train, y_test = train_test_split(
-        X_text, y_hs, test_size=0.25, random_state=42, stratify=y_hs if len(y_hs.unique()) > 1 else None
-    )
-    hs_model = RandomForestClassifier(n_estimators=100, random_state=42)
-    hs_model.fit(X_train, y_train)
-    hs_acc = accuracy_score(y_test, hs_model.predict(X_test))
-    
-    # 2. ESG 위험도 모델 (블록 B)
-    X_esg = df[["협력사_환경위반건수", "협력사_노동평가점수"]]
-    y_esg = (df["리스크_정답"].astype(str).str.strip() == "위험").astype(int)
-    
-    X_e_train, X_e_test, y_e_train, y_e_test = train_test_split(
-        X_esg, y_esg, test_size=0.25, random_state=42
-    )
-    esg_model = LogisticRegression(random_state=42)
-    esg_model.fit(X_e_train, y_e_train)
-    
-    y_e_pred = esg_model.predict(X_e_test)
-    esg_acc = accuracy_score(y_e_test, y_e_pred)
-    esg_prec = precision_score(y_e_test, y_e_pred, zero_division=0)
-    esg_rec = recall_score(y_e_test, y_e_pred, zero_division=0)
-    cm = confusion_matrix(y_e_test, y_e_pred)
-    
-    return {
-        "df_master": df,
-        "tfidf": tfidf,
-        "hs_model": hs_model,
-        "hs_acc": hs_acc,
-        "esg_model": esg_model,
-        "esg_acc": esg_acc,
-        "esg_prec": esg_prec,
-        "esg_rec": esg_rec,
-        "cm": cm
+    /* Hero Banner */
+    .hero-banner {
+        position: relative;
+        border-radius: 16px;
+        padding: 36px 32px;
+        margin-bottom: 24px;
+        color: #FFFFFF;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: 0 16px 36px -8px rgba(15, 23, 42, 0.35);
+    }
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(10px);
+        padding: 6px 14px;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        color: #E2E8F0;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        margin-bottom: 12px;
+    }
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #10B981;
+        box-shadow: 0 0 10px #10B981;
+    }
+    .hero-title {
+        font-size: 2.3rem;
+        font-weight: 800;
+        line-height: 1.25;
+        margin: 0 0 10px 0;
+        letter-spacing: -0.02em;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+    .hero-subtitle {
+        font-size: 1.05rem;
+        color: #E2E8F0;
+        margin: 0 0 20px 0;
+        max-width: 850px;
+        line-height: 1.55;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    }
+    .hero-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .hero-chip {
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(8px);
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #F1F5F9;
+        border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
-WATCHLIST_HS_CODES = ["7208.10", "7208.39", "7604.21", "7604.29", "2804.10", "2716.00"]
+    /* Feature Banner (Tabs) */
+    .feature-banner {
+        border-radius: 12px;
+        padding: 24px 28px;
+        margin-bottom: 22px;
+        color: #FFFFFF;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.15);
+    }
+    .feature-tag {
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+    .feature-heading {
+        font-size: 1.45rem;
+        font-weight: 700;
+        margin: 0 0 6px 0;
+        letter-spacing: -0.01em;
+    }
+    .feature-desc {
+        font-size: 0.92rem;
+        color: #E2E8F0;
+        margin: 0;
+    }
+
+    /* Metric Cards */
+    .metric-card {
+        background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        padding: 1.25rem 1rem;
+        text-align: center;
+        box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px -3px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Badges */
+    .badge-risk {
+        background-color: #FEE2E2;
+        color: #991B1B;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.82rem;
+        border: 1px solid #FECACA;
+    }
+    .badge-safe {
+        background-color: #DCFCE7;
+        color: #166534;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.82rem;
+        border: 1px solid #BBF7D0;
+    }
+    .badge-warn {
+        background-color: #FEF3C7;
+        color: #92400E;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.82rem;
+        border: 1px solid #FDE68A;
+    }
+
+    /* Tabs Styling */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        border-bottom: 2px solid #E2E8F0;
+        margin-bottom: 20px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        padding: 12px 20px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        border-radius: 8px 8px 0px 0px;
+        color: #475569;
+        transition: all 0.2s ease;
+    }
+    .stTabs [data-baseweb="tab"]:hover {
+        color: #1E3A8A;
+        background-color: #F1F5F9;
+    }
+    .stTabs [aria-selected="true"] {
+        color: #1E3A8A !important;
+        border-bottom: 3px solid #2563EB !important;
+        background-color: #EFF6FF !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
 
 # -----------------------------------------------------------------------------
-# 4. 상단 네비게이션 및 헤더
+# 4. 상단 네비게이션 및 프리미엄 히어로 배너 (hero-ship.jpg 배경 적용)
 # -----------------------------------------------------------------------------
-col_h1, col_h2 = st.columns([4, 1])
-with col_h1:
-    st.markdown('<div class="main-title">🌐 글로벌 무역 컴플라이언스 & ESG 통합 인텔리전스</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sub-title">EU CBAM · HS Code 자동추천 · 공급망 ESG 위험도 스크리닝 · 서류 교차검증 · RAG 규정 감사 플랫폼</div>', unsafe_allow_html=True)
-with col_h2:
-    st.caption("시스템 상태: 🟢 정상 가동 중")
-    st.caption(f"기준 시각: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+hero_bg_style = f"background: linear-gradient(135deg, rgba(10, 25, 47, 0.88) 0%, rgba(30, 58, 138, 0.78) 55%, rgba(15, 23, 42, 0.92) 100%), url('data:image/jpeg;base64,{b64_ship}') center/cover no-repeat;" if b64_ship else "background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 50%, #0F172A 100%);"
+
+st.markdown(f"""
+<div class="hero-banner" style="{hero_bg_style}">
+    <div class="hero-badge">
+        <span class="pulse-dot"></span>
+        GLOBAL MARITIME TRADE & ESG INTELLIGENCE
+    </div>
+    <h1 class="hero-title">
+        글로벌 무역 컴플라이언스 & ESG 통합 인텔리전스
+    </h1>
+    <p class="hero-subtitle">
+        EU CBAM 탄소국경조정제도 · HS Code 자동추천 · 공급망 ESG 위험도 스크리닝 · 서류 교차검증 · RAG 규정 감사 플랫폼
+    </p>
+    <div class="hero-chips">
+        <span class="hero-chip">🚢 글로벌 해상물류 실시간 연동</span>
+        <span class="hero-chip">🤖 노코드 에이전트 ML 파이프라인</span>
+        <span class="hero-chip">⚖️ EU 2026 CBAM 규정집 RAG 탑재</span>
+        <span class="hero-chip">⚡ Render Cloud Production</span>
+        <span class="hero-chip" style="background: rgba(16, 185, 129, 0.2); border-color: #10B981; color: #6EE7B7;">🟢 시스템 상태: 정상 가동 중</span>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 # 6개 핵심 탭 구성
 tabs = st.tabs([
@@ -218,8 +275,14 @@ tabs = st.tabs([
 # TAB 1: 종합 모니터링 대시보드 (Executive Dashboard & Alerts - 5·6일차)
 # =============================================================================
 with tabs[0]:
-    st.subheader("📌 수출입 통관 & 공급망 ESG 종합 모니터링 대시보드")
-    st.caption("5일차 실습 대시보드 연동 데이터, 국가별 ESG 리스크, 관세율 및 주간 리스크 추이를 한눈에 모니터링합니다.")
+    harbor_bg = f"background: linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 58, 138, 0.72) 60%, rgba(15, 23, 42, 0.9) 100%), url('data:image/jpeg;base64,{b64_harbor}') center/cover no-repeat;" if b64_harbor else "background: linear-gradient(135deg, #1E293B 0%, #1E3A8A 100%);"
+    st.markdown(f"""
+    <div class="feature-banner" style="{harbor_bg}">
+        <div class="feature-tag" style="color: #60A5FA;">EXECUTIVE HARBOR COMMAND CENTER</div>
+        <h3 class="feature-heading">스마트 항만 & 수출입 통관 종합 관제탑</h3>
+        <p class="feature-desc">5일차 실습 대시보드 연동 데이터, 국가별 ESG 리스크, 관세율 및 주간 리스크 추이를 한눈에 실시간 모니터링합니다.</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     # 1.1 데이터 로드
     df_dash = load_csv("dashboard_integrated.csv")
@@ -414,8 +477,14 @@ Export Compliance Intelligence System (Automated Alert)
 # TAB 2: HS Code & ESG 예측 에이전트 (3·4일차 블록 A, B, C)
 # =============================================================================
 with tabs[1]:
-    st.subheader("🤖 AI 기반 HS Code 추천 & 공급망 ESG 위험도 통합 예측 에이전트")
-    st.caption("3·4일차 학생 교안 블록 A(HS Code 모델), 블록 B(ESG 스크리닝), 블록 C(통합 에이전트)를 실시간 실행합니다.")
+    globe_bg = f"background: linear-gradient(135deg, rgba(10, 15, 30, 0.88) 0%, rgba(49, 46, 129, 0.75) 60%, rgba(15, 23, 42, 0.9) 100%), url('data:image/jpeg;base64,{b64_globe}') center/cover no-repeat;" if b64_globe else "background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%);"
+    st.markdown(f"""
+    <div class="feature-banner" style="{globe_bg}">
+        <div class="feature-tag" style="color: #A78BFA;">AI-POWERED PREDICTION ENGINE</div>
+        <h3 class="feature-heading">글로벌 공급망 AI 인텔리전스 예측 에이전트</h3>
+        <p class="feature-desc">3·4일차 실습: 영문 품목분류(TF-IDF + Random Forest) 및 공급망 ESG 위험도 지도학습 모델 병렬 추론 파이프라인</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     # 모델 학습
     models = train_prediction_models()
@@ -857,8 +926,14 @@ with tabs[3]:
 # TAB 5: RAG 규정 지식 검색 & 계약서 감사 (5·6일차)
 # =============================================================================
 with tabs[4]:
-    st.subheader("📚 RAG 규정 지식 검색 엔진 & 실전 무역 서류 실시간 감사")
-    st.caption("5·6일차 실습: 통관 규정집, CBAM 가이드라인 기반 지능형 질의응답(RAG)과 신규 수출계약서/바이어 문의 메일의 독소조항을 자동 감사합니다.")
+    rag_bg = f"background: linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(13, 148, 136, 0.75) 60%, rgba(15, 23, 42, 0.92) 100%), url('data:image/jpeg;base64,{b64_globe}') center/cover no-repeat;" if b64_globe else "background: linear-gradient(135deg, #134E4A 0%, #0F766E 100%);"
+    st.markdown(f"""
+    <div class="feature-banner" style="{rag_bg}">
+        <div class="feature-tag" style="color: #2DD4BF;">INTELLIGENT REGULATORY AUDIT & RAG</div>
+        <h3 class="feature-heading">EU CBAM 규정집 & 계약서 독소조항 지능형 감사 엔진</h3>
+        <p class="feature-desc">5·6일차 실습: 통관규정집·CBAM 가이드라인 RAG 지능형 검색, 계약서 독소조항 자동 적출 및 바이어 공식 영문 답신 생성</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     rag_sub1, rag_sub2, rag_sub3 = st.tabs(["📖 규정집 RAG 지식 검색", "📑 신규 수출계약서 자동 감사", "✉️ 바이어 문의 메일 자동 분석"])
     

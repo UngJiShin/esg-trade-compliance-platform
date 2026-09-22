@@ -255,7 +255,56 @@ with tabs[0]:
                 pivot_risk = df_weekly.pivot_table(
                     index="날짜", columns="리스크유형", values="문서번호", aggfunc="count", fill_value=0
                 )
-                st.bar_chart(pivot_risk, height=260)
+                
+                # 범례
+                st.markdown("""
+                <div style="display: flex; gap: 12px; margin-bottom: 8px; font-size: 0.85rem; font-weight: 600;">
+                    <span style="color: #EF4444;">■ 서류불일치</span>
+                    <span style="color: #F97316;">■ 원산지</span>
+                    <span style="color: #3B82F6;">■ HS Code</span>
+                    <span style="color: #10B981;">■ ESG</span>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # 순수 HTML/CSS 반응형 누적 막대 차트 (Vega-Lite JS 청크 의존성 제거)
+                color_map = {
+                    "서류불일치": "#EF4444",
+                    "원산지": "#F97316",
+                    "HS Code": "#3B82F6",
+                    "ESG": "#10B981"
+                }
+                max_total = max(pivot_risk.sum(axis=1).max(), 1)
+                
+                html_bars = ['<div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">']
+                for date_val, row in pivot_risk.iterrows():
+                    total_row = row.sum()
+                    pct_width = min((total_row / max_total) * 100, 100)
+                    detail_str = ", ".join([f"{k}: {int(v)}" for k, v in row.items() if v > 0])
+                    
+                    segments = []
+                    for k, v in row.items():
+                        if v > 0:
+                            seg_pct = (v / total_row) * 100
+                            c = color_map.get(k, "#64748B")
+                            segments.append(f'<div style="width: {seg_pct:.1f}%; background-color: {c}; height: 16px;" title="{k}: {int(v)}건"></div>')
+                    
+                    seg_html = "".join(segments)
+                    bar_block = f"""
+                    <div style="margin-bottom: 8px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 2px;">
+                            <span style="font-weight: 600; color: #334155;">📅 {date_val}</span>
+                            <span style="color: #64748B;">총 {int(total_row)}건 ({detail_str})</span>
+                        </div>
+                        <div style="width: 100%; background: #e2e8f0; border-radius: 4px; overflow: hidden; height: 16px;">
+                            <div style="width: {pct_width:.1f}%; display: flex; height: 100%;">
+                                {seg_html}
+                            </div>
+                        </div>
+                    </div>
+                    """
+                    html_bars.append(bar_block)
+                html_bars.append('</div>')
+                st.markdown("".join(html_bars), unsafe_allow_html=True)
             else:
                 st.info("주간 리스크 로그 데이터가 없습니다.")
                 
@@ -717,12 +766,22 @@ with tabs[3]:
         e3.metric("간접배출(Scope 2) 비중", f"{(scope2_indirect/total_emissions)*100:.1f}%")
         e4.metric("예상 CBAM 인증서 비용", f"€ {est_cost_eur:,.0f}")
         
-        # 시각화
-        chart_df = pd.DataFrame({
-            "배출 유형": ["Scope 1 (직접연료)", "Scope 2 (간접전력)"],
-            "배출량(tCO2e)": [fuel_direct, scope2_indirect]
-        }).set_index("배출 유형")
-        st.bar_chart(chart_df, height=200)
+        # 시각화 (순수 HTML/CSS - Vega-Lite JS 청크 의존성 제거)
+        st.markdown("##### 📊 Scope 1 vs Scope 2 배출 비중")
+        s1_pct = (fuel_direct / max(total_emissions, 1e-6)) * 100
+        s2_pct = (scope2_indirect / max(total_emissions, 1e-6)) * 100
+        st.markdown(f"""
+        <div style="background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 10px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 6px; font-weight: 600;">
+                <span style="color: #DC2626;">🔥 Scope 1 (직접연료): {fuel_direct:,.1f} tCO2e ({s1_pct:.1f}%)</span>
+                <span style="color: #2563EB;">⚡ Scope 2 (간접전력): {scope2_indirect:,.1f} tCO2e ({s2_pct:.1f}%)</span>
+            </div>
+            <div style="display: flex; height: 20px; border-radius: 6px; overflow: hidden; background: #e2e8f0;">
+                <div style="width: {s1_pct:.1f}%; background-color: #DC2626; height: 100%;" title="Scope 1"></div>
+                <div style="width: {s2_pct:.1f}%; background-color: #2563EB; height: 100%;" title="Scope 2"></div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
     with cbam_tab2:
         st.markdown("#### 라운드 5 노코드 에이전트: 리스크 키워드 가중합 스코어링")

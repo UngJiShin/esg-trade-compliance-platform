@@ -355,29 +355,41 @@ st.markdown(f"""
         <span class="hero-chip">⚡ Render Cloud Production</span>
         <span class="hero-chip" style="background: rgba(16, 185, 129, 0.2); border-color: #10B981; color: #6EE7B7;">🟢 시스템 상태: 정상 가동 중</span>
     </div>
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.18); font-size: 0.82rem;">
+        <span style="font-weight: 700; color: #93C5FD; margin-right: 4px;">📍 커리큘럼 로드맵:</span>
+        <span style="background: rgba(30, 58, 138, 0.7); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);"><b>1일차</b> CBAM 산정 & 가중치</span>
+        <span style="color: #94A3B8;">➔</span>
+        <span style="background: rgba(30, 58, 138, 0.7); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);"><b>2일차</b> 송장 교차검증 & 거부사유서</span>
+        <span style="color: #94A3B8;">➔</span>
+        <span style="background: rgba(49, 46, 129, 0.7); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);"><b>3·4일차</b> 블록 A·B·C AI 에이전트</span>
+        <span style="color: #94A3B8;">➔</span>
+        <span style="background: rgba(15, 23, 42, 0.7); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);"><b>5일차</b> 종합 대시보드 & 자동알림</span>
+        <span style="color: #94A3B8;">➔</span>
+        <span style="background: rgba(13, 148, 136, 0.7); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);"><b>6일차</b> RAG 규정검색 & 계약서감사</span>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
-# 6개 핵심 탭 구성
+# 6개 핵심 탭 구성 (1일차 ~ 6일차 순서 정렬 및 라벨링)
 tabs = st.tabs([
-    "📊 종합 모니터링 대시보드",
-    "🤖 HS Code & ESG 예측 에이전트",
-    "🔍 서류 교차 검증 & 사유서 진단",
-    "⚖️ CBAM 배출량 산정 & 규제 스코어링",
-    "📚 RAG 규정 지식 검색 & 계약서 감사",
-    "🚀 Render 배포 & 시스템 가이드"
+    "⚖️ [1일차] CBAM 배출량 & 노코드 에이전트",
+    "🔍 [2일차] 서류 교차검증 & 사유서 진단",
+    "🤖 [3·4일차] HS Code & ESG 예측 에이전트",
+    "📊 [5일차] 종합 대시보드 & 자동 알림 관제",
+    "📚 [6일차] RAG 규정 지식검색 & 계약서 감사",
+    "🚀 [가이드] Render 클라우드 배포 매뉴얼"
 ])
 
 # =============================================================================
-# TAB 1: 종합 모니터링 대시보드 (Executive Dashboard & Alerts - 5·6일차)
+# TAB 4 [UI 순서 4번째]: 5일차 종합 모니터링 대시보드 & 자동 알림 (5일차)
 # =============================================================================
-with tabs[0]:
+with tabs[3]:
     harbor_bg = f"background: linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 58, 138, 0.72) 60%, rgba(15, 23, 42, 0.9) 100%), url('data:image/jpeg;base64,{b64_harbor}') center/cover no-repeat;" if b64_harbor else "background: linear-gradient(135deg, #1E293B 0%, #1E3A8A 100%);"
     st.markdown(f"""
     <div class="feature-banner" style="{harbor_bg}">
-        <div class="feature-tag" style="color: #60A5FA;">EXECUTIVE HARBOR COMMAND CENTER</div>
-        <h3 class="feature-heading">스마트 항만 & 수출입 통관 종합 관제탑</h3>
-        <p class="feature-desc">5일차 실습 대시보드 연동 데이터, 국가별 ESG 리스크, 관세율 및 주간 리스크 추이를 한눈에 실시간 모니터링합니다.</p>
+        <div class="feature-tag" style="color: #38BDF8;">[5일차 실습] EXECUTIVE DASHBOARD & DISPATCH SYSTEM</div>
+        <h3 class="feature-heading">5일차. 수출입 통관 종합 대시보드 & 리스크 자동 알림 관제탑</h3>
+        <p class="feature-desc">5일차 교안: 대시보드 연동 데이터, 국가별 ESG 리스크, 관세율 매핑 및 리스크 감지 시 담당자 자동 매핑 발송</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -571,15 +583,15 @@ Export Compliance Intelligence System (Automated Alert)
                     st.dataframe(df_tariff, use_container_width=True, hide_index=True)
 
 # =============================================================================
-# TAB 2: HS Code & ESG 예측 에이전트 (3·4일차 블록 A, B, C)
+# TAB 2 [UI 순서 3번째]: HS Code & ESG 예측 에이전트 (3·4일차 블록 A, B, C)
 # =============================================================================
-with tabs[1]:
+with tabs[2]:
     globe_bg = f"background: linear-gradient(135deg, rgba(10, 15, 30, 0.88) 0%, rgba(49, 46, 129, 0.75) 60%, rgba(15, 23, 42, 0.9) 100%), url('data:image/jpeg;base64,{b64_globe}') center/cover no-repeat;" if b64_globe else "background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%);"
     st.markdown(f"""
     <div class="feature-banner" style="{globe_bg}">
-        <div class="feature-tag" style="color: #A78BFA;">AI-POWERED PREDICTION ENGINE</div>
-        <h3 class="feature-heading">글로벌 공급망 AI 인텔리전스 예측 에이전트</h3>
-        <p class="feature-desc">3·4일차 실습: 영문 품목분류(TF-IDF + Random Forest) 및 공급망 ESG 위험도 지도학습 모델 병렬 추론 파이프라인</p>
+        <div class="feature-tag" style="color: #A78BFA;">[3·4일차 실습] MACHINE LEARNING PREDICTION ENGINE</div>
+        <h3 class="feature-heading">3·4일차. 글로벌 공급망 AI 인텔리전스 예측 에이전트</h3>
+        <p class="feature-desc">3·4일차 교안: 영문 품목분류(TF-IDF + Random Forest) 및 공급망 ESG 위험도 지도학습 모델 병렬 추론 파이프라인</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -710,11 +722,17 @@ with tabs[1]:
             )
 
 # =============================================================================
-# TAB 3: 서류 교차 검증 & 사유서 진단 (2일차)
+# TAB 1 [UI 순서 2번째]: 서류 교차 검증 & 사유서 진단 (2일차)
 # =============================================================================
-with tabs[2]:
-    st.subheader("🔍 비정형 서류 교차 검증 & 통관 거부 사유서 자동 진단")
-    st.caption("2일차 실습: 상업송장(Invoice)과 수출신고필증을 라인 단위로 대조하여 단위 환산, 수량, 금액, HS Code, 원산지 불일치를 자동 적출합니다.")
+with tabs[1]:
+    doc_bg = f"background: linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(180, 83, 9, 0.75) 60%, rgba(15, 23, 42, 0.92) 100%), url('data:image/jpeg;base64,{b64_harbor}') center/cover no-repeat;" if b64_harbor else "background: linear-gradient(135deg, #78350F 0%, #B45309 100%);"
+    st.markdown(f"""
+    <div class="feature-banner" style="{doc_bg}">
+        <div class="feature-tag" style="color: #FBBF24;">[2일차 실습] DOCUMENT VALIDATION & REJECTION DIAGNOSIS</div>
+        <h3 class="feature-heading">2일차. 비정형 서류 교차 검증 & 통관 거부 사유서 자동 진단</h3>
+        <p class="feature-desc">2일차 교안: 상업송장(Invoice)과 수출신고필증 라인 단위 교차 대조 및 거부 사유서(Rejection Notice) 핵심 리스크 자동 적출</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     c_sub1, c_sub2 = st.tabs(["📑 인보이스 vs 수출신고필증 교차 검증", "🛑 통관 거부 사유서(Rejection Docs) 분석"])
     
@@ -885,11 +903,17 @@ with tabs[2]:
                     st.info("• 산업통상자원부 전략물자관리원 사전판정서 발급\n• 최종수요자(End-User) 확인서 확보")
 
 # =============================================================================
-# TAB 4: CBAM 배출량 산정 & 규제 스코어링 (1일차 & Round 5)
+# TAB 0 [UI 순서 1번째]: CBAM 배출량 산정 & 규제 스코어링 (1일차 & Round 5)
 # =============================================================================
-with tabs[3]:
-    st.subheader("⚖️ EU CBAM 내재배출량 산정 & 노코드 리스크 스코어링")
-    st.caption("1일차 CBAM 가이드라인 산정 공식과 라운드5 노코드 에이전트의 가중합(Bag of Words + Feature Construction) 스코어링을 실시간 실행합니다.")
+with tabs[0]:
+    cbam_bg = f"background: linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(5, 150, 105, 0.75) 60%, rgba(15, 23, 42, 0.92) 100%), url('data:image/jpeg;base64,{b64_ship}') center/cover no-repeat;" if b64_ship else "background: linear-gradient(135deg, #064E3B 0%, #047857 100%);"
+    st.markdown(f"""
+    <div class="feature-banner" style="{cbam_bg}">
+        <div class="feature-tag" style="color: #34D399;">[1일차 실습] CARBON BORDER COMPLIANCE & NO-CODE AGENT</div>
+        <h3 class="feature-heading">1일차. EU CBAM 내재배출량 산정 & 노코드 리스크 스코어링</h3>
+        <p class="feature-desc">1일차 교안: EU 탄소국경조정제도(CBAM) Scope 1·2 배출량 산정 공식과 라운드5 노코드 에이전트의 규칙 기반 위험도 스코어링 파이프라인</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     cbam_tab1, cbam_tab2 = st.tabs(["🏭 CBAM 내재배출량 산정 계산기", "🏷️ 노코드 에이전트 리스크 스코어러 (Round 5)"])
     
@@ -1020,15 +1044,15 @@ with tabs[3]:
                     st.info("검출된 리스크 키워드가 없습니다. (점수: 0점)")
 
 # =============================================================================
-# TAB 5: RAG 규정 지식 검색 & 계약서 감사 (5·6일차)
+# TAB 4 [UI 순서 5번째]: RAG 규정 지식 검색 & 계약서 감사 (6일차)
 # =============================================================================
 with tabs[4]:
     rag_bg = f"background: linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(13, 148, 136, 0.75) 60%, rgba(15, 23, 42, 0.92) 100%), url('data:image/jpeg;base64,{b64_globe}') center/cover no-repeat;" if b64_globe else "background: linear-gradient(135deg, #134E4A 0%, #0F766E 100%);"
     st.markdown(f"""
     <div class="feature-banner" style="{rag_bg}">
-        <div class="feature-tag" style="color: #2DD4BF;">INTELLIGENT REGULATORY AUDIT & RAG</div>
-        <h3 class="feature-heading">EU CBAM 규정집 & 계약서 독소조항 지능형 감사 엔진</h3>
-        <p class="feature-desc">5·6일차 실습: 통관규정집·CBAM 가이드라인 RAG 지능형 검색, 계약서 독소조항 자동 적출 및 바이어 공식 영문 답신 생성</p>
+        <div class="feature-tag" style="color: #2DD4BF;">[6일차 실습] INTELLIGENT REGULATORY AUDIT & RAG</div>
+        <h3 class="feature-heading">6일차. EU CBAM 규정집 & 계약서 독소조항 지능형 감사 엔진</h3>
+        <p class="feature-desc">6일차 교안: 통관규정집·CBAM 가이드라인 RAG 지능형 검색, 계약서 독소조항 자동 적출 및 바이어 공식 영문 답신 생성</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -1229,11 +1253,11 @@ with tabs[5]:
         ```
         
         #### 📚 교육과정 대응 모듈 맵
-        - **1일차:** CBAM 품목별 가이드라인, 노코드 리스크 스코어링 (탭 4)
-        - **2일차:** 서류 클리닝, 인보이스-신고필증 교차검증, 거부사유서 진단 (탭 3)
-        - **3·4일차:** 블록 A(HS Code), 블록 B(ESG 스크리닝), 블록 C(통합 에이전트) (탭 2)
-        - **5일차:** 종합 모니터링 대시보드, 자동 알림 발송 시뮬레이터 (탭 1)
-        - **6일차:** 통관규정 RAG 지식 검색, 신규 계약서/바이어 메일 감사 (탭 5)
+        - **1일차:** CBAM 품목별 가이드라인, 노코드 리스크 스코어링 (1일차 탭)
+        - **2일차:** 서류 클리닝, 인보이스-신고필증 교차검증, 거부사유서 진단 (2일차 탭)
+        - **3·4일차:** 블록 A(HS Code), 블록 B(ESG 스크리닝), 블록 C(통합 에이전트) (3·4일차 탭)
+        - **5일차:** 종합 모니터링 대시보드, 자동 알림 발송 시뮬레이터 (5일차 탭)
+        - **6일차:** 통관규정 RAG 지식 검색, 신규 계약서/바이어 메일 감사 (6일차 탭)
         """)
         
     st.info("💡 배포 파일 체크: `requirements.txt`, `Procfile`, `render.yaml` 및 `data/` 디렉토리가 모두 포함되어 클라우드 환경에서 의존성 없이 즉시 작동합니다.")

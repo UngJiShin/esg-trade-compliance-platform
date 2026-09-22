@@ -19,6 +19,7 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 import streamlit as st
+import streamlit.components.v1 as components
 
 # Scikit-learn
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -65,13 +66,29 @@ b64_harbor = get_image_base64("ceo-vision-harbor.jpg")
 # Custom CSS
 st.markdown("""
 <style>
-    /* 전체 폰트 및 모던 스타일링 */
+    /* 전체 폰트 및 모던 라이트 테마 */
     @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
     html, body, [class*="css"] {
         font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
     }
     
-    /* Hero Banner */
+    /* 밝고 쾌적한 라이트 모드 강제 */
+    .stApp {
+        background-color: #F8FAFC !important;
+        color: #0F172A !important;
+    }
+    
+    header[data-testid="stHeader"] {
+        background-color: rgba(248, 250, 252, 0.9) !important;
+        backdrop-filter: blur(8px);
+    }
+    
+    section[data-testid="stSidebar"] {
+        background-color: #FFFFFF !important;
+        border-right: 1px solid #E2E8F0 !important;
+    }
+    
+    /* Hero Banner (밝고 화사한 오션 블루 & 에메랄드 그라디언트) */
     .hero-banner {
         position: relative;
         border-radius: 16px;
@@ -79,30 +96,30 @@ st.markdown("""
         margin-bottom: 24px;
         color: #FFFFFF;
         overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        box-shadow: 0 16px 36px -8px rgba(15, 23, 42, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        box-shadow: 0 12px 32px -4px rgba(37, 99, 235, 0.22);
     }
     .hero-badge {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: rgba(15, 23, 42, 0.6);
+        background: rgba(255, 255, 255, 0.22);
         backdrop-filter: blur(10px);
         padding: 6px 14px;
         border-radius: 9999px;
-        font-size: 0.8rem;
+        font-size: 0.82rem;
         font-weight: 700;
         letter-spacing: 0.5px;
-        color: #E2E8F0;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #FFFFFF;
+        border: 1px solid rgba(255, 255, 255, 0.4);
         margin-bottom: 12px;
     }
     .pulse-dot {
         width: 8px;
         height: 8px;
         border-radius: 50%;
-        background-color: #10B981;
-        box-shadow: 0 0 10px #10B981;
+        background-color: #34D399;
+        box-shadow: 0 0 10px #34D399;
     }
     .hero-title {
         font-size: 2.3rem;
@@ -110,15 +127,15 @@ st.markdown("""
         line-height: 1.25;
         margin: 0 0 10px 0;
         letter-spacing: -0.02em;
-        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
     }
     .hero-subtitle {
         font-size: 1.05rem;
-        color: #E2E8F0;
+        color: #F8FAFC;
         margin: 0 0 20px 0;
         max-width: 850px;
         line-height: 1.55;
-        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
     }
     .hero-chips {
         display: flex;
@@ -126,24 +143,24 @@ st.markdown("""
         gap: 10px;
     }
     .hero-chip {
-        background: rgba(15, 23, 42, 0.65);
+        background: rgba(255, 255, 255, 0.22);
         backdrop-filter: blur(8px);
         padding: 6px 14px;
         border-radius: 8px;
-        font-size: 0.82rem;
+        font-size: 0.84rem;
         font-weight: 600;
-        color: #F1F5F9;
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #FFFFFF;
+        border: 1px solid rgba(255, 255, 255, 0.35);
     }
 
     /* Feature Banner (Tabs) */
     .feature-banner {
-        border-radius: 12px;
+        border-radius: 14px;
         padding: 24px 28px;
         margin-bottom: 22px;
         color: #FFFFFF;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        box-shadow: 0 8px 24px -4px rgba(37, 99, 235, 0.15);
     }
     .feature-tag {
         font-size: 0.78rem;
@@ -160,23 +177,23 @@ st.markdown("""
     }
     .feature-desc {
         font-size: 0.92rem;
-        color: #E2E8F0;
+        color: #F8FAFC;
         margin: 0;
     }
 
-    /* Metric Cards */
+    /* Metric Cards (화사하고 깨끗한 화이트 카드) */
     .metric-card {
-        background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+        background: #FFFFFF;
         border: 1px solid #E2E8F0;
         border-radius: 12px;
         padding: 1.25rem 1rem;
         text-align: center;
-        box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     .metric-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px -3px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 8px 20px -3px rgba(37, 99, 235, 0.1);
     }
 
     /* Badges */
@@ -208,11 +225,12 @@ st.markdown("""
         border: 1px solid #FDE68A;
     }
 
-    /* Tabs Styling */
+    /* Tabs Styling (화사하고 명확한 탭) */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
         border-bottom: 2px solid #E2E8F0;
         margin-bottom: 20px;
+        background-color: transparent;
     }
     .stTabs [data-baseweb="tab"] {
         padding: 12px 20px;
@@ -220,16 +238,20 @@ st.markdown("""
         font-size: 0.95rem;
         border-radius: 8px 8px 0px 0px;
         color: #475569;
+        background-color: #F1F5F9;
+        border: 1px solid #E2E8F0;
+        border-bottom: none;
         transition: all 0.2s ease;
     }
     .stTabs [data-baseweb="tab"]:hover {
-        color: #1E3A8A;
-        background-color: #F1F5F9;
+        color: #1D4ED8;
+        background-color: #E0E7FF;
     }
     .stTabs [aria-selected="true"] {
-        color: #1E3A8A !important;
+        color: #1D4ED8 !important;
         border-bottom: 3px solid #2563EB !important;
-        background-color: #EFF6FF !important;
+        background-color: #FFFFFF !important;
+        box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.04);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -577,7 +599,7 @@ WATCHLIST_HS_CODES = ["7208.10", "7208.39", "7604.21", "7604.29", "2804.10", "27
 # -----------------------------------------------------------------------------
 # 4. 상단 네비게이션 및 프리미엄 히어로 배너 (hero-ship.jpg 배경 적용)
 # -----------------------------------------------------------------------------
-hero_bg_style = f"background: linear-gradient(135deg, rgba(10, 25, 47, 0.88) 0%, rgba(30, 58, 138, 0.78) 55%, rgba(15, 23, 42, 0.92) 100%), url('data:image/jpeg;base64,{b64_ship}') center/cover no-repeat;" if b64_ship else "background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 50%, #0F172A 100%);"
+hero_bg_style = f"background: linear-gradient(135deg, rgba(29, 78, 216, 0.84) 0%, rgba(37, 99, 235, 0.76) 50%, rgba(14, 165, 233, 0.82) 100%), url('data:image/jpeg;base64,{b64_ship}') center/cover no-repeat;" if b64_ship else "background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 50%, #0284C7 100%);"
 
 st.markdown(f"""
 <div class="hero-banner" style="{hero_bg_style}">
@@ -596,17 +618,17 @@ st.markdown(f"""
         <span class="hero-chip">🤖 노코드 에이전트 ML 파이프라인</span>
         <span class="hero-chip">⚖️ EU 2026 CBAM 규정집 RAG 탑재</span>
         <span class="hero-chip">⚡ Render Cloud Production</span>
-        <span class="hero-chip" style="background: rgba(16, 185, 129, 0.2); border-color: #10B981; color: #6EE7B7;">🟢 시스템 상태: 정상 가동 중</span>
+        <span class="hero-chip" style="background: rgba(16, 185, 129, 0.35); border-color: #34D399; color: #FFFFFF; font-weight: 700;">🟢 시스템 상태: 정상 가동 중</span>
     </div>
-    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.18); font-size: 0.82rem;">
-        <span style="font-weight: 700; color: #93C5FD; margin-right: 4px;">📍 활성 실습 트랙:</span>
-        <span style="background: rgba(234, 179, 8, 0.25); color: #FDE047; padding: 4px 12px; border-radius: 6px; border: 1px solid #EAB308; font-weight: 800;">⭐ [3·4일차] 블록 C: CBAM 배출량 & 서류 교차검증 에이전트</span>
-        <span style="color: #94A3B8;">|</span>
-        <span style="background: rgba(30, 58, 138, 0.7); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);"><b>2일차</b> 송장 교차검증 & 거부사유서</span>
-        <span style="color: #94A3B8;">|</span>
-        <span style="background: rgba(15, 23, 42, 0.7); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);"><b>5일차</b> 종합 대시보드 & 자동알림</span>
-        <span style="color: #94A3B8;">|</span>
-        <span style="background: rgba(13, 148, 136, 0.7); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);"><b>가이드</b> 블록 C 배포 매뉴얼</span>
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.25); font-size: 0.82rem;">
+        <span style="font-weight: 700; color: #E0F2FE; margin-right: 4px;">📍 활성 실습 트랙:</span>
+        <span style="background: #FEF08A; color: #854D0E; padding: 4px 12px; border-radius: 6px; border: 1px solid #FACC15; font-weight: 800;">⭐ [3·4일차] 블록 C: CBAM 배출량 & 서류 교차검증 에이전트</span>
+        <span style="color: rgba(255,255,255,0.5);">|</span>
+        <span style="background: rgba(255, 255, 255, 0.2); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); color: #FFFFFF;"><b>2일차</b> 송장 교차검증 & 거부사유서</span>
+        <span style="color: rgba(255,255,255,0.5);">|</span>
+        <span style="background: rgba(255, 255, 255, 0.2); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); color: #FFFFFF;"><b>5일차</b> 종합 대시보드 & 자동알림</span>
+        <span style="color: rgba(255,255,255,0.5);">|</span>
+        <span style="background: rgba(255, 255, 255, 0.2); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); color: #FFFFFF;"><b>가이드</b> 블록 C 배포 매뉴얼</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -623,7 +645,7 @@ tabs = st.tabs([
 # TAB 2: 5일차 종합 모니터링 대시보드 & 자동 알림 (5일차)
 # =============================================================================
 with tabs[2]:
-    harbor_bg = f"background: linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 58, 138, 0.72) 60%, rgba(15, 23, 42, 0.9) 100%), url('data:image/jpeg;base64,{b64_harbor}') center/cover no-repeat;" if b64_harbor else "background: linear-gradient(135deg, #1E293B 0%, #1E3A8A 100%);"
+    harbor_bg = f"background: linear-gradient(135deg, rgba(2, 132, 199, 0.82) 0%, rgba(37, 99, 235, 0.78) 60%, rgba(16, 185, 129, 0.75) 100%), url('data:image/jpeg;base64,{b64_harbor}') center/cover no-repeat;" if b64_harbor else "background: linear-gradient(135deg, #0284C7 0%, #2563EB 100%);"
     st.markdown(f"""
     <div class="feature-banner" style="{harbor_bg}">
         <div class="feature-tag" style="color: #38BDF8;">[5일차 실습] EXECUTIVE DASHBOARD & DISPATCH SYSTEM</div>
@@ -677,6 +699,124 @@ with tabs[2]:
         
         st.divider()
         
+        # 주간 리스크 누적 막대 차트 생성 함수 (순수 SVG 벡터 렌더링)
+        def render_weekly_risk_chart(pivot_df):
+            categories = ["서류불일치", "원산지", "HS Code", "ESG"]
+            color_map = {
+                "서류불일치": "#EF4444",  # 빨강
+                "원산지": "#F97316",      # 주황
+                "HS Code": "#3B82F6",    # 파랑
+                "ESG": "#10B981"         # 초록
+            }
+            
+            dates = list(pivot_df.index)
+            num_bars = len(dates)
+            if num_bars == 0:
+                return "<div style='color: #64748B;'>표시할 데이터가 없습니다.</div>"
+                
+            totals = pivot_df.sum(axis=1)
+            max_val = max(int(totals.max()) if not totals.empty else 1, 1)
+            # y축 눈금 최대값 (2의 배수 올림)
+            y_max = int(((max_val + 1) // 2 + 1) * 2)
+            if y_max < 6:
+                y_max = 6
+                
+            # SVG 크기 및 여백
+            svg_w = 560
+            svg_h = 220
+            ml, mr, mt, mb = 36, 20, 24, 38
+            chart_w = svg_w - ml - mr
+            chart_h = svg_h - mt - mb
+            
+            slot_w = chart_w / num_bars
+            bar_w = min(max(slot_w * 0.52, 22), 40)
+            
+            parts = []
+            parts.append(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {svg_w} {svg_h}" style="width:100%;height:100%;font-family:\'Pretendard\',-apple-system,sans-serif;overflow:visible;">')
+            parts.append('<style>')
+            parts.append('.grid-line { stroke: #E2E8F0; stroke-dasharray: 4,4; stroke-width: 1; }')
+            parts.append('.axis-lbl { font-size: 11px; fill: #64748B; font-weight: 500; }')
+            parts.append('.bar-rect { transition: opacity 0.15s ease, filter 0.15s ease; cursor: pointer; }')
+            parts.append('.bar-rect:hover { opacity: 0.82; filter: brightness(1.1); }')
+            parts.append('.top-num { font-size: 11px; font-weight: 700; fill: #1E293B; text-anchor: middle; }')
+            parts.append('</style>')
+            
+            # 1. Y축 그리드선 및 라벨
+            step = 2 if y_max <= 10 else max(int(y_max / 4), 2)
+            y_ticks = list(range(0, y_max + 1, step))
+            if y_ticks[-1] < y_max:
+                y_ticks.append(y_max)
+                
+            for val in y_ticks:
+                y_pos = mt + chart_h - (val / y_max) * chart_h
+                parts.append(f'<line x1="{ml}" y1="{y_pos:.1f}" x2="{svg_w - mr}" y2="{y_pos:.1f}" class="grid-line"/>')
+                parts.append(f'<text x="{ml - 6}" y="{y_pos + 4:.1f}" text-anchor="end" class="axis-lbl">{val}</text>')
+                
+            # X축 기본 실선
+            parts.append(f'<line x1="{ml}" y1="{mt + chart_h}" x2="{svg_w - mr}" y2="{mt + chart_h}" stroke="#CBD5E1" stroke-width="1.5"/>')
+            
+            # 2. 막대 렌더링
+            for i, date_val in enumerate(dates):
+                row = pivot_df.loc[date_val]
+                total = int(row.sum())
+                x_center = ml + i * slot_w + slot_w / 2
+                bar_x = x_center - bar_w / 2
+                
+                # 날짜 문자열 축약 (예: 2026-09-15 -> 09/15)
+                d_parts = str(date_val).split("-")
+                d_label = f"{d_parts[-2]}/{d_parts[-1]}" if len(d_parts) >= 2 else str(date_val)
+                
+                curr_y = mt + chart_h
+                tip_items = []
+                
+                for cat in categories:
+                    val = int(row.get(cat, 0))
+                    if val > 0:
+                        tip_items.append(f"{cat} {val}건")
+                        h_seg = (val / y_max) * chart_h
+                        seg_y = curr_y - h_seg
+                        color = color_map.get(cat, "#94A3B8")
+                        
+                        parts.append(
+                            f'<rect class="bar-rect" x="{bar_x:.1f}" y="{seg_y:.1f}" width="{bar_w:.1f}" height="{h_seg:.1f}" fill="{color}" rx="2">'
+                            f'<title>📅 {date_val} | {cat}: {val}건</title></rect>'
+                        )
+                        curr_y = seg_y
+                        
+                # 막대 상단 총 건수
+                if total > 0:
+                    total_y = max(curr_y - 6, mt + 10)
+                    full_tip = f"📅 {date_val} (총 {total}건: " + ", ".join(tip_items) + ")"
+                    parts.append(
+                        f'<text x="{x_center:.1f}" y="{total_y:.1f}" class="top-num">{total}<title>{full_tip}</title></text>'
+                    )
+                    
+                # X축 날짜 텍스트
+                parts.append(
+                    f'<text x="{x_center:.1f}" y="{mt + chart_h + 18}" text-anchor="middle" class="axis-lbl" font-weight="600">{d_label}</text>'
+                )
+                
+            parts.append('</svg>')
+            svg_str = "".join(parts)
+            
+            html_container = f"""
+            <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                    <div style="font-size: 0.88rem; font-weight: 700; color: #1E293B;">📊 일별 누적 리스크 분포 (단위: 건)</div>
+                    <div style="display: flex; gap: 10px; font-size: 0.78rem; font-weight: 600;">
+                        <span style="display: inline-flex; align-items: center; gap: 4px; color: #EF4444;"><span style="width: 10px; height: 10px; border-radius: 2px; background: #EF4444;"></span>서류불일치</span>
+                        <span style="display: inline-flex; align-items: center; gap: 4px; color: #F97316;"><span style="width: 10px; height: 10px; border-radius: 2px; background: #F97316;"></span>원산지</span>
+                        <span style="display: inline-flex; align-items: center; gap: 4px; color: #3B82F6;"><span style="width: 10px; height: 10px; border-radius: 2px; background: #3B82F6;"></span>HS Code</span>
+                        <span style="display: inline-flex; align-items: center; gap: 4px; color: #10B981;"><span style="width: 10px; height: 10px; border-radius: 2px; background: #10B981;"></span>ESG</span>
+                    </div>
+                </div>
+                <div style="width: 100%; height: 215px;">
+                    {svg_str}
+                </div>
+            </div>
+            """
+            return html_container
+
         # 1.3 차트 및 필터 레이아웃
         c_left, c_right = st.columns([3, 2])
         
@@ -688,55 +828,15 @@ with tabs[2]:
                     index="날짜", columns="리스크유형", values="문서번호", aggfunc="count", fill_value=0
                 )
                 
-                # 범례
-                st.markdown("""
-                <div style="display: flex; gap: 12px; margin-bottom: 8px; font-size: 0.85rem; font-weight: 600;">
-                    <span style="color: #EF4444;">■ 서류불일치</span>
-                    <span style="color: #F97316;">■ 원산지</span>
-                    <span style="color: #3B82F6;">■ HS Code</span>
-                    <span style="color: #10B981;">■ ESG</span>
-                </div>
-                """, unsafe_allow_html=True)
+                # 인터랙티브 SVG 수직 누적 막대 그래프 렌더링
+                chart_html = render_weekly_risk_chart(pivot_risk)
+                components.html(chart_html, height=275)
                 
-                # 순수 HTML/CSS 반응형 누적 막대 차트 (Vega-Lite JS 청크 의존성 제거)
-                color_map = {
-                    "서류불일치": "#EF4444",
-                    "원산지": "#F97316",
-                    "HS Code": "#3B82F6",
-                    "ESG": "#10B981"
-                }
-                max_total = max(pivot_risk.sum(axis=1).max(), 1)
-                
-                html_bars = ['<div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">']
-                for date_val, row in pivot_risk.iterrows():
-                    total_row = row.sum()
-                    pct_width = min((total_row / max_total) * 100, 100)
-                    detail_str = ", ".join([f"{k}: {int(v)}" for k, v in row.items() if v > 0])
-                    
-                    segments = []
-                    for k, v in row.items():
-                        if v > 0:
-                            seg_pct = (v / total_row) * 100
-                            c = color_map.get(k, "#64748B")
-                            segments.append(f'<div style="width: {seg_pct:.1f}%; background-color: {c}; height: 16px;" title="{k}: {int(v)}건"></div>')
-                    
-                    seg_html = "".join(segments)
-                    bar_block = f"""
-                    <div style="margin-bottom: 8px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 2px;">
-                            <span style="font-weight: 600; color: #334155;">📅 {date_val}</span>
-                            <span style="color: #64748B;">총 {int(total_row)}건 ({detail_str})</span>
-                        </div>
-                        <div style="width: 100%; background: #e2e8f0; border-radius: 4px; overflow: hidden; height: 16px;">
-                            <div style="width: {pct_width:.1f}%; display: flex; height: 100%;">
-                                {seg_html}
-                            </div>
-                        </div>
-                    </div>
-                    """
-                    html_bars.append(bar_block)
-                html_bars.append('</div>')
-                st.markdown("".join(html_bars), unsafe_allow_html=True)
+                # 주간 집계 테이블 토글 확인
+                with st.expander("📋 주간 일자별 상세 집계 데이터 표", expanded=False):
+                    pivot_display = pivot_risk.copy()
+                    pivot_display["일별합계"] = pivot_display.sum(axis=1)
+                    st.dataframe(pivot_display, use_container_width=True)
             else:
                 st.info("주간 리스크 로그 데이터가 없습니다.")
                 
@@ -846,7 +946,7 @@ Export Compliance Intelligence System (Automated Alert)
 # TAB 0: ⭐ [3·4일차] 블록 C: CBAM 배출량 & 서류 교차검증 에이전트
 # =============================================================================
 with tabs[0]:
-    globe_bg = f"background: linear-gradient(135deg, rgba(10, 15, 30, 0.88) 0%, rgba(49, 46, 129, 0.75) 60%, rgba(15, 23, 42, 0.9) 100%), url('data:image/jpeg;base64,{b64_globe}') center/cover no-repeat;" if b64_globe else "background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%);"
+    globe_bg = f"background: linear-gradient(135deg, rgba(30, 58, 138, 0.82) 0%, rgba(37, 99, 235, 0.76) 50%, rgba(13, 148, 136, 0.78) 100%), url('data:image/jpeg;base64,{b64_globe}') center/cover no-repeat;" if b64_globe else "background: linear-gradient(135deg, #1E3A8A 0%, #0D9488 100%);"
     st.markdown(f"""
     <div class="feature-banner" style="{globe_bg}">
         <div class="feature-tag" style="color: #FBBF24;">⭐ [핵심 집중 실습] BLOCK C : CBAM & CROSS-VALIDATION AGENT</div>
@@ -1217,7 +1317,7 @@ with tabs[0]:
 # TAB 1 [UI 순서 2번째]: 서류 교차 검증 & 사유서 진단 (2일차)
 # =============================================================================
 with tabs[1]:
-    doc_bg = f"background: linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(180, 83, 9, 0.75) 60%, rgba(15, 23, 42, 0.92) 100%), url('data:image/jpeg;base64,{b64_harbor}') center/cover no-repeat;" if b64_harbor else "background: linear-gradient(135deg, #78350F 0%, #B45309 100%);"
+    doc_bg = f"background: linear-gradient(135deg, rgba(67, 56, 202, 0.82) 0%, rgba(99, 102, 241, 0.75) 50%, rgba(14, 165, 233, 0.78) 100%), url('data:image/jpeg;base64,{b64_harbor}') center/cover no-repeat;" if b64_harbor else "background: linear-gradient(135deg, #4338CA 0%, #0EA5E9 100%);"
     st.markdown(f"""
     <div class="feature-banner" style="{doc_bg}">
         <div class="feature-tag" style="color: #FBBF24;">[2일차 실습] DOCUMENT VALIDATION & REJECTION DIAGNOSIS</div>
@@ -1422,9 +1522,9 @@ with tabs[3]:
     with guide_t1:
         # 0. 핵심 요약
         st.markdown(r"""
-        <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.15) 0%, rgba(15, 23, 42, 0.25) 100%); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 10px; padding: 18px; margin-bottom: 20px;">
-            <h4 style="color: #60A5FA; margin-top: 0; margin-bottom: 8px;">📌 [핵심 요약] 버전 문제와 프롬프트 정리 (2026-09-21)</h4>
-            <ul style="margin-bottom: 0; line-height: 1.7; font-size: 0.95rem;">
+        <div style="background: linear-gradient(135deg, #EFF6FF 0%, #F0FDF4 100%); border: 1px solid #BFDBFE; border-radius: 12px; padding: 20px; margin-bottom: 20px; color: #1E293B;">
+            <h4 style="color: #1D4ED8; margin-top: 0; margin-bottom: 8px;">📌 [핵심 요약] 버전 문제와 프롬프트 정리 (2026-09-21)</h4>
+            <ul style="margin-bottom: 0; line-height: 1.7; font-size: 0.95rem; color: #334155;">
                 <li><b>빌드 실패 원인:</b> Python 3.14 자체가 아니라, pip이 없는 <b>MSYS2 Python</b>이 기본 실행자로 잡혀서 패키지 설치 단계에서 중단된 것이었으며, <b>python.org 공식 Python 3.13</b>으로 빌드하여 완벽히 성공함.</li>
                 <li><b>권장 버전:</b> 빌드는 Windows에서 <b>공식 Python 3.13</b>으로 진행 (빌드, 실행, Python 없는 타 PC 무설치 실행까지 교차 검증 완료).</li>
                 <li><b>배포 원칙:</b> <code>dist\BlockC</code> <b>폴더 전체를 통째로(zip) 압축하여 전달</b>해야 함. <code>BlockC.exe</code> 단독으로는 <code>_internal</code> 런타임이 없어 실행되지 않음.</li>

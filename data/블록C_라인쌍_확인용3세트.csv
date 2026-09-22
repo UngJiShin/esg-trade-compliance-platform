@@ -1,0 +1,10 @@
+set_id,line_no,item_group,inv_desc,pl_desc,hs_code,inv_qty,pl_qty,inv_unit,pl_qty_text,inv_amount,pl_amount,inv_net_kg,pl_net,pl_net_unit,inv_origin,pl_origin,energy_gj,power_mwh
+d,c,d,s,s,s,c,c,d,s,c,c,c,c,d,d,d,c,c
+,,,meta,meta,meta,,,,meta,,,,,,,,,
+SET-06,1,철강,"Hot-Dip Galvanized Steel Coil, 0.5mm x 1000mm, Z120",GI COIL 0.5T x 1000W Z120,7210.49,12,11,COILS,COILS,57600,57600,60000,60000,kg,REPUBLIC OF KOREA,REPUBLIC OF KOREA,3600,
+SET-06,2,철강,"Hot-Dip Galvanized Steel Coil, 0.6mm x 1000mm, Z120",GI COIL 0.6T x 1000W Z120,7210.49,8,8,COILS,COILS,39200,39200,40000,40000,kg,REPUBLIC OF KOREA,REPUBLIC OF KOREA,3600,
+SET-06,3,철강,"Hot-Dip Galvanized Steel Coil, 0.8mm x 1219mm, Z180",GI COIL 0.8T x 1219W Z180,7210.49,5,5,COILS,COILS,26000,62000,25000,25000,kg,REPUBLIC OF KOREA,REPUBLIC OF KOREA,3600,
+SET-07,1,비료,"Ammonium Nitrate 34.5% N, Granular, 50kg PP bags","Ammonium Nitrate 34.5% N, Granular, 50kg PP bags",3102.30,1600,1600,BAGS,BAGS,30400,30400,80000,88000,kg,REPUBLIC OF KOREA,REPUBLIC OF KOREA,,150
+SET-07,2,비료,"Ammonium Nitrate 33.5% N, Prilled, 50kg PP bags","Calcium Ammonium Nitrate (CAN) 27% N, Prilled, 50kg PP bags",3102.30,2400,2400,BAGS,BAGS,44400,44660,120000,120000,kg,REPUBLIC OF KOREA,ROK,,150
+SET-08,1,알루미늄,"Aluminium Foil 0.020mm x 600mm, Alloy 8011-O",AL FOIL 20 MIC x 600W 8011-O,7607.11,25,25,ROLLS,RLS,31000,31000,12500,12.5,MT,REPUBLIC OF KOREA,KR,,
+SET-08,2,알루미늄,"Aluminium Foil 0.030mm x 600mm, Alloy 8011-O",AL FOIL 30 MIC x 600W 8011-O,7607.11,16,16,ROLLS,RLS,20800,20800,8000,8000,kg,REPUBLIC OF KOREA,KR,,

@@ -1,0 +1,6 @@
+item_group,gj_coef,default_t,direct_t,power_mwh_coef
+d,c,c,c,c
+,,,,
+철강,0.056,2.1,,
+알루미늄,,6.5,,
+비료,,,0.85,0.45

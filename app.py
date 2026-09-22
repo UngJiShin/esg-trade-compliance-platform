@@ -13,6 +13,8 @@ import json
 import re
 import math
 import base64
+import io
+import zipfile
 from datetime import datetime
 import pandas as pd
 import numpy as np
@@ -271,7 +273,248 @@ def load_knowledge():
     return []
 
 # -----------------------------------------------------------------------------
-# 3. 모델 캐싱 (블록 A & B)
+# 2.1 블록 C 템플릿 및 통합 에이전트 엔진
+# -----------------------------------------------------------------------------
+REPORT_TEMPLATE_BLOCKC = """당신은 EU CBAM 대응 ESG 실사 보고서를 작성하는 무역 컴플라이언스 실무 보조자입니다.
+아래 [입력 자료]를 [표준 서식 항목]에 맞춰 정리해 보고서 초안을 작성해 주세요.
+
+[표준 서식 항목]
+1. 보고 개요 (세트 ID, 인보이스 번호, 품목군)
+2. 수출 건 정보 (수출자·수입자, 품목·HS Code, 수량·중량·금액)
+3. 내재 배출량 산정 (적용 방식, 입력값, 산식, 결과 tCO2e)
+4. 서류 교차 검증 결과 (비교 항목별 판정, 불일치 목록)
+5. 리스크 요약
+6. 권고 조치
+7. 근거 및 한계 (참조 문서, 산정 가정, 확인 필요 사항)
+
+[작성 규칙]
+- 7개 항목의 번호와 제목을 그대로 사용하고 순서를 바꾸지 않는다.
+- [입력 자료]에 있는 사실만 사용한다. 없는 값은 추정하지 말고 '해당 자료 없음'이라고 적는다.
+- 배출량과 합계 숫자는 입력 자료 그대로 옮긴다. 다시 계산해서 바꾸지 않는다.
+- (3) 교차 검증 결과는 규칙이 '값이 다르면 모두' 표시한 1차 후보이다. 약어·표기·단위 환산·국가 표기 차이로 설명되는 것은 오류가 아닌 '표기 차이'로 분류하여 4번의 불일치 목록에서 빼고 '참고'로 따로 적는다. 합계 차이가 허용 오차 이내이면 오류로 쓰지 않는다.
+- 판정이 애매하면 '확인 요망'으로 적고 이유를 한 줄 덧붙인다.
+- 내용이 없는 항목도 삭제하지 말고 '해당 없음'과 그 이유를 적는다.
+
+[입력 자료]
+(1) 서류 정보: {doc_info}
+(2) 배출량 산정 결과: {emission_info}
+(3) 교차 검증 결과(규칙 1차): {check_info}
+(4) 내가 정한 가정: {assumption_info}
+"""
+
+DIAG_TEMPLATE_BLOCKC = """당신은 수출 규제 리스크를 진단하는 무역 컴플라이언스 실무 보조자입니다.
+[입력 자료]와 첨부한 문서(CBAM 가이드라인, 배출량 산정 규정표)를 바탕으로 이 수출 건의 '수출 규제 리스크 진단서'를 작성해 주세요.
+
+[진단서 구성]
+1. 진단 대상 (세트 ID, 품목, 수출자 → 수입자)
+2. 종합 리스크 등급 (상 / 중 / 하 / 이상 없음 중 하나) 및 판단 이유 한 줄
+3. 발견된 오류 (오류마다: 위치, 인보이스 값, 패킹리스트 값, 오류 유형)
+4. 리스크 상세 (오류마다 통관·CBAM 신고·FTA 원산지 관점에서 생길 수 있는 문제)
+5. 근거 조항 (첨부 문서에 실제로 있는 조항 번호와 요지)
+6. 권고 조치 (오류마다: 누가, 무엇을 정정하거나 확인해야 하는지)
+7. 배출량 산정 결과의 신뢰도 (확정값 / 잠정값과 그 이유)
+
+[등급 기준 - 예시]
+- 상: 품목이나 원산지가 서로 다른 등 신고 정정과 재확인이 필요한 오류
+- 중: 수량·금액·중량 불일치로 서류 정정이 필요한 오류
+- 하: 허용 오차 이내 차이나 표기 차이만 있는 경우
+- 이상 없음: 실제 오류가 없는 경우
+
+[작성 규칙]
+- (3) 교차 검증 결과에 적힌 후보만 검토 대상으로 삼고, 오류를 새로 만들지 않는다.
+- (3)은 규칙이 '값이 다르면 모두' 표시한 1차 후보이다. 약어·표기·단위 환산·국가 표기 차이로 설명되는 것은 오류로 쓰지 않고 '표기 차이(오류 아님)'로 따로 적는다. 실제 오류가 하나도 없으면 '발견된 오류 없음', 종합 등급은 '이상 없음'으로 한다.
+- 근거 조항은 첨부 문서에서 실제로 찾을 수 있는 조항 번호와 문구만 인용한다. 찾을 수 없으면 조항 번호를 만들지 말고 '근거 조항 확인 필요'라고 적는다.
+- 배출량 숫자는 입력 자료 그대로 쓰고 다시 계산하지 않는다.
+
+[입력 자료]
+(1) 서류 정보: {doc_info}
+(2) 배출량 산정 결과: {emission_info}
+(3) 교차 검증 결과(규칙 1차): {check_info}
+(4) 내가 정한 가정: {assumption_info}
+"""
+
+def parse_orange_csv(file_obj_or_path, skip_orange=True):
+    try:
+        df_raw = pd.read_csv(file_obj_or_path, encoding='utf-8')
+    except Exception:
+        if hasattr(file_obj_or_path, 'seek'):
+            file_obj_or_path.seek(0)
+        df_raw = pd.read_csv(file_obj_or_path, encoding='cp949')
+        
+    if skip_orange and len(df_raw) > 2 and str(df_raw.iloc[0, 0]).strip().lower() in ['d', 'c', 's', 'm']:
+        return df_raw.iloc[2:].copy().reset_index(drop=True)
+    return df_raw
+
+def run_block_c_pipeline(df_lines, df_coef, tol=0.005, convert_mt=True, korea_aliases=None, base_weight="인보이스 순중량"):
+    if korea_aliases is None:
+        korea_aliases = ["REPUBLIC OF KOREA", "KOREA", "KR", "ROK"]
+        
+    df = df_lines.copy()
+    coef_df = df_coef.copy()
+    
+    num_cols = ['line_no', 'inv_qty', 'pl_qty', 'inv_amount', 'pl_amount', 'inv_net_kg', 'pl_net', 'energy_gj', 'power_mwh']
+    for c in num_cols:
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors='coerce').fillna(0)
+
+    coef_num_cols = ['gj_coef', 'default_t', 'direct_t', 'power_mwh_coef']
+    for c in coef_num_cols:
+        if c in coef_df.columns:
+            coef_df[c] = pd.to_numeric(coef_df[c], errors='coerce').fillna(0)
+
+    if convert_mt and 'pl_net_unit' in df.columns:
+        df['pl_net_kg'] = np.where(df['pl_net_unit'].astype(str).str.upper() == 'MT', df['pl_net'] * 1000.0, df['pl_net'])
+    else:
+        df['pl_net_kg'] = df['pl_net'] if 'pl_net' in df.columns else df.get('inv_net_kg', 0)
+
+    korea_upper = [a.upper().strip() for a in korea_aliases]
+    df['inv_origin_n'] = df['inv_origin'].astype(str).str.strip().apply(
+        lambda x: "KOREA" if x.upper() in korea_upper else x
+    )
+    df['pl_origin_n'] = df['pl_origin'].astype(str).str.strip().apply(
+        lambda x: "KOREA" if x.upper() in korea_upper else x
+    )
+
+    df['f_qty'] = np.where(df['inv_qty'] != df['pl_qty'], 1, 0)
+    df['f_amt'] = np.where(df['inv_amount'] != df['pl_amount'], 1, 0)
+    df['f_net'] = np.where(df['inv_net_kg'] != df['pl_net_kg'], 1, 0)
+    df['f_origin'] = np.where(df['inv_origin_n'] != df['pl_origin_n'], 1, 0)
+    df['f_desc'] = np.where(df['inv_desc'].astype(str).str.strip() != df['pl_desc'].astype(str).str.strip(), 1, 0)
+
+    def make_issue_text(row):
+        issues = []
+        if row['f_qty']:
+            issues.append(f"수량 {int(row['inv_qty'])}→{int(row['pl_qty'])} (인보이스 {row.get('inv_unit','')} / PL {row.get('pl_qty_text','')})")
+        if row['f_amt']:
+            issues.append(f"금액 {row['inv_amount']:,.2f}→{row['pl_amount']:,.2f}")
+        if row['f_net']:
+            issues.append(f"순중량 {row['inv_net_kg']:,.1f}kg→{row['pl_net']:,.1f}{row.get('pl_net_unit','')}")
+        if row['f_origin']:
+            issues.append(f"원산지 {row['inv_origin']}→{row['pl_origin']}")
+        if row['f_desc']:
+            issues.append(f"품목명 [{row['inv_desc']}]→[{row['pl_desc']}]")
+        if issues:
+            return f"[{row['set_id']} {int(row['line_no'])}행] " + "; ".join(issues) + ";"
+        return ""
+
+    df['issue_text'] = df.apply(make_issue_text, axis=1)
+
+    coef_dict = coef_df.set_index('item_group').to_dict(orient='index')
+    results = []
+    prompts = {}
+    grouped = df.groupby('set_id', sort=False)
+
+    for set_id, group in grouped:
+        item_group = group['item_group'].iloc[0]
+        inv_amt_sum = group['inv_amount'].sum()
+        pl_amt_sum = group['pl_amount'].sum()
+        inv_net_sum = group['inv_net_kg'].sum()
+        pl_net_sum = group['pl_net_kg'].sum()
+
+        f_qty_sum = int(group['f_qty'].sum())
+        f_origin_sum = int(group['f_origin'].sum())
+        f_desc_sum = int(group['f_desc'].sum())
+
+        energy_gj_mean = group['energy_gj'].mean() if 'energy_gj' in group.columns else 0.0
+        power_mwh_mean = group['power_mwh'].mean() if 'power_mwh' in group.columns else 0.0
+
+        issues = [t for t in group['issue_text'].tolist() if t]
+        issue_combined = "\n".join(issues) if issues else "규칙 1차 검증에서 불일치 후보 없음"
+
+        amt_pct = (pl_amt_sum - inv_amt_sum) / inv_amt_sum if inv_amt_sum != 0 else 0.0
+        net_pct = (pl_net_sum - inv_net_sum) / inv_net_sum if inv_net_sum != 0 else 0.0
+
+        flag_amt = 1 if abs(amt_pct) > tol else 0
+        flag_net = 1 if abs(net_pct) > tol else 0
+
+        risk_flags = int(f_qty_sum + f_origin_sum + flag_amt + flag_net)
+
+        c = coef_dict.get(item_group, {})
+        t_weight = inv_net_sum / 1000.0
+
+        if item_group == "비료":
+            direct_t = c.get('direct_t', 0.85)
+            power_coef = c.get('power_mwh_coef', 0.45)
+            emission = (t_weight * direct_t) + (power_mwh_mean * power_coef)
+            method = "직접+간접 합산"
+            calc_inputs = f"순중량 {t_weight:,.1f} t × 직접배출계수 {direct_t} + 전력 {power_mwh_mean:,.0f} MWh × 전력배출계수 {power_coef}"
+        elif item_group == "철강" and energy_gj_mean > 0:
+            gj_coef = c.get('gj_coef', 0.056)
+            emission = energy_gj_mean * gj_coef
+            method = "직접배출(실측)"
+            calc_inputs = f"실측 에너지 {energy_gj_mean:,.0f} GJ × 직접배출계수 {gj_coef}"
+        elif item_group == "철강":
+            default_t = c.get('default_t', 2.1)
+            emission = t_weight * default_t
+            method = "기본값법(실측 없음→전환)"
+            calc_inputs = f"순중량 {t_weight:,.1f} t × 기본값 {default_t}"
+        else:
+            default_t = c.get('default_t', 6.5)
+            emission = t_weight * default_t
+            method = "기본값법"
+            calc_inputs = f"순중량 {t_weight:,.1f} t × 기본값 {default_t}"
+
+        routing = "위험 건 (보고서+진단서)" if risk_flags > 0 else "정상 건 (보고서 전용)"
+
+        doc_info = (f"세트 {set_id} / 품목군 {item_group} / 인보이스 합계: 금액 {inv_amt_sum:,.0f} USD, 순중량 {inv_net_sum:,.0f} kg / "
+                    f"패킹리스트 합계: 금액 {pl_amt_sum:,.0f} USD, 순중량 {pl_net_sum:,.0f} kg(규칙이 계산한 값)")
+        emission_info = f"{method} 적용. 결과 {emission:,.2f} tCO2e. 입력값: {calc_inputs}"
+        check_info = f"{issue_combined}\n합계 차이: 금액 {amt_pct:+.2%}, 순중량 {net_pct:+.2%}"
+        assumption_info = f"허용 오차: 합계 기준 ±{tol*100:.1f}% / 배출량 산정 기준 중량: {base_weight}"
+
+        report_txt = REPORT_TEMPLATE_BLOCKC.format(
+            doc_info=doc_info,
+            emission_info=emission_info,
+            check_info=check_info,
+            assumption_info=assumption_info
+        )
+        prompts[f"{set_id}_보고서_프롬프트.txt"] = report_txt
+
+        diag_txt = ""
+        if risk_flags > 0:
+            diag_txt = DIAG_TEMPLATE_BLOCKC.format(
+                doc_info=doc_info,
+                emission_info=emission_info,
+                check_info=check_info,
+                assumption_info=assumption_info
+            )
+            prompts[f"{set_id}_진단서_프롬프트.txt"] = diag_txt
+
+        results.append({
+            'set_id': set_id,
+            'item_group': item_group,
+            'method': method,
+            'emission_tCO2e': round(emission, 2),
+            'inv_amount': inv_amt_sum,
+            'pl_amount': pl_amt_sum,
+            'amt_diff_pct': amt_pct,
+            'inv_net_kg': inv_net_sum,
+            'pl_net_kg': pl_net_sum,
+            'net_diff_pct': net_pct,
+            'f_qty_sum': f_qty_sum,
+            'f_origin_sum': f_origin_sum,
+            'f_desc_sum': f_desc_sum,
+            'flag_amt': flag_amt,
+            'flag_net': flag_net,
+            'risk_flags': risk_flags,
+            'routing': routing,
+            'report_prompt': report_txt,
+            'diag_prompt': diag_txt
+        })
+
+    summary_df = pd.DataFrame(results)
+    diff_df = df[df['issue_text'] != ''][['set_id', 'line_no', 'issue_text']].copy().reset_index(drop=True)
+    return summary_df, diff_df, prompts
+
+def create_block_c_zip(summary_df, diff_df, prompts_dict):
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as z:
+        z.writestr("세트별_결과.csv", summary_df.to_csv(index=False, encoding='utf-8-sig'))
+        z.writestr("라인별_불일치_후보.csv", diff_df.to_csv(index=False, encoding='utf-8-sig'))
+        for filename, content in prompts_dict.items():
+            z.writestr(filename, content)
+    buffer.seek(0)
+    return buffer.getvalue()
 # -----------------------------------------------------------------------------
 @st.cache_resource
 def train_prediction_models():
@@ -393,12 +636,33 @@ with tabs[3]:
     </div>
     """, unsafe_allow_html=True)
     
-    # 1.1 데이터 로드
-    df_dash = load_csv("dashboard_integrated.csv")
+    # 1.1 데이터 로드 및 파일 선택기
+    with st.expander("📂 대시보드 연동 데이터 선택 및 직접 업로드 (기본 데이터 자동 로드)", expanded=False):
+        d_f1, d_f2 = st.columns(2)
+        with d_f1:
+            dash_opt = st.selectbox("모니터링 데이터셋 선택", ["기본 연동 데이터 (dashboard_integrated.csv)", "테스트 샘플 (dashboard_test_sample.csv)", "📂 직접 CSV 파일 업로드"], key="sel_dash_file")
+        with d_f2:
+            up_dash = st.file_uploader("모니터링 CSV 파일 업로드", type=["csv"], key="up_dash_file") if "직접" in dash_opt else None
+
+    if up_dash is not None:
+        try:
+            df_dash = pd.read_csv(up_dash, encoding="utf-8")
+        except Exception:
+            df_dash = pd.read_csv(up_dash, encoding="cp949")
+        dash_name = up_dash.name
+    elif "테스트 샘플" in dash_opt:
+        df_dash = load_csv("dashboard_test_sample.csv")
+        dash_name = "dashboard_test_sample.csv"
+    else:
+        df_dash = load_csv("dashboard_integrated.csv")
+        dash_name = "dashboard_integrated.csv"
+        
     df_country = load_csv("master_country_esg.csv")
     df_tariff = load_csv("master_tariff_cbam.csv")
     df_weekly = load_csv("weekly_risk_log.csv")
     df_manager = load_csv("manager_mapping.csv")
+    
+    st.info(f"📂 **관제 모니터링 데이터:** `{dash_name}` ({len(df_dash) if df_dash is not None else 0}건 로드 완료)")
     
     if df_dash is None:
         st.error("대시보드 연동 데이터를 불러올 수 없습니다.")
@@ -666,60 +930,307 @@ with tabs[2]:
 
     st.divider()
 
-    # 2.3 블록 C: 노코드 통합 예측 에이전트 (일괄 서류 스크리닝)
-    st.markdown("#### [블록 C] 노코드 통합 예측 에이전트 빌드 (일괄 스크리닝)")
-    st.caption("문서번호 기준으로 HS추천값과 ESG위험도를 안전 병합하고, 오늘 검토가 필요한 고위험 건을 자동 상단 정렬합니다.")
+    # 2.3 블록 C: CBAM 배출량 산정 및 서류 교차검증 통합 에이전트 (block_c_app.py)
+    st.markdown("#### [블록 C] CBAM 배출량 산정 및 서류 교차검증 통합 에이전트")
+    st.caption("인보이스와 패킹리스트 라인 데이터를 교차 검증하고, 품목별 배출량 산정, 오차 분석, AI 보고서/진단서 프롬프트를 자동 생성합니다.")
     
-    c_threshold = st.slider("리포트 필터 임계값 (오늘 검토할 위험 확률 기준)", 0.1, 0.9, 0.5, 0.05, key="c_thresh")
+    # [1] 파일 선택 / 업로드 구역
+    c_f1, c_f2 = st.columns(2)
+    with c_f1:
+        st.markdown("**📄 라인쌍 서류 데이터 선택 (인보이스 ↔ 패킹리스트)**")
+        lines_source_opt = st.selectbox(
+            "라인쌍 서류 파일 선택",
+            [
+                "블록C_라인쌍_기본5세트.csv (기본 5개 세트)",
+                "블록C_라인쌍_확인용3세트.csv (추가 확인용 3세트)",
+                "📂 새로운 CSV 파일 직접 업로드"
+            ],
+            index=0,
+            key="lines_source_opt"
+        )
+        uploaded_lines_file = None
+        if "직접 업로드" in lines_source_opt:
+            uploaded_lines_file = st.file_uploader("라인쌍 CSV 파일 업로드", type=["csv"], key="upload_lines_csv")
+            
+    with c_f2:
+        st.markdown("**📑 배출계수 마스터 데이터 선택**")
+        coef_source_opt = st.selectbox(
+            "배출계수 파일 선택",
+            [
+                "블록C_배출계수.csv (기본 마스터 계수)",
+                "📂 새로운 CSV 파일 직접 업로드"
+            ],
+            index=0,
+            key="coef_source_opt"
+        )
+        uploaded_coef_file = None
+        if "직접 업로드" in coef_source_opt:
+            uploaded_coef_file = st.file_uploader("배출계수 CSV 파일 업로드", type=["csv"], key="upload_coef_csv")
+            
+    # [2] v1 / v2 프리셋 및 파라미터 제어 구역
+    st.markdown("##### ⚙️ 검증 규칙 및 프리셋 설정 (v1 / v2)")
     
-    # 기본 서류 로드
-    df_shipping = load_csv("shipping_docs_sample.csv")
-    if df_shipping is not None:
-        if "선적ID" in df_shipping.columns and "문서번호" not in df_shipping.columns:
-            df_shipping = df_shipping.rename(columns={"선적ID": "문서번호"})
+    if "block_c_preset" not in st.session_state:
+        st.session_state["block_c_preset"] = "v2"
+        st.session_state["bc_tol"] = 0.5
+        st.session_state["bc_mt_kg"] = True
+        st.session_state["bc_skip_orange"] = True
+        st.session_state["bc_aliases"] = "REPUBLIC OF KOREA, KOREA, KR, ROK"
+        st.session_state["bc_weight_str"] = "인보이스 순중량"
+        
+    p_btn1, p_btn2, p_msg = st.columns([1.5, 1.5, 3])
+    with p_btn1:
+        if st.button("🔄 v1 프리셋 (초기/엄격)", help="MT환산 OFF, 기본 별칭만 적용 (교안 초기 버전)"):
+            st.session_state["block_c_preset"] = "v1"
+            st.session_state["bc_mt_kg"] = False
+            st.session_state["bc_aliases"] = "REPUBLIC OF KOREA, KOREA"
+            st.rerun()
+    with p_btn2:
+        if st.button("✨ v2 프리셋 (실전/유연)", help="MT환산 ON (1 MT=1,000kg), KR/ROK 별칭 확장 (교안 권장 버전)"):
+            st.session_state["block_c_preset"] = "v2"
+            st.session_state["bc_mt_kg"] = True
+            st.session_state["bc_aliases"] = "REPUBLIC OF KOREA, KOREA, KR, ROK"
+            st.rerun()
+    with p_msg:
+        cur_preset = st.session_state.get("block_c_preset", "v2")
+        preset_badge = "🟢 v2 (실전 유연 모드: MT환산 ON, 확장 별칭)" if cur_preset == "v2" else "🟡 v1 (초기 엄격 모드: MT환산 OFF)"
+        st.markdown(f"<div style='padding: 8px 12px; background: rgba(30,58,138,0.2); border-radius: 8px; border: 1px solid rgba(59,130,246,0.3); font-size: 0.9rem; margin-top: 2px;'>현재 모드: <b>{preset_badge}</b></div>", unsafe_allow_html=True)
+
+    with st.expander("🛠️ 세부 파라미터 직접 조정 (허용 오차, 환산 규칙, Orange 메타스킵)"):
+        par_col1, par_col2, par_col3 = st.columns(3)
+        with par_col1:
+            tol_val = st.slider("합계 허용 오차 (TOL, %)", 0.0, 2.0, float(st.session_state.get("bc_tol", 0.5)), 0.1, format="%.1f%%") / 100.0
+            skip_orange = st.checkbox("Orange 3 메타 행 스킵 (2~3번째 줄 건너뛰기)", value=st.session_state.get("bc_skip_orange", True))
+        with par_col2:
+            convert_mt = st.checkbox("패킹리스트 MT ➔ kg 자동 환산 (1 MT = 1,000 kg)", value=st.session_state.get("bc_mt_kg", True))
+            base_wt = st.text_input("프롬프트 기준 중량 문구", value=st.session_state.get("bc_weight_str", "인보이스 순중량"))
+        with par_col3:
+            alias_str = st.text_input("한국 원산지 통일 별칭 (쉼표 구분)", value=st.session_state.get("bc_aliases", "REPUBLIC OF KOREA, KOREA, KR, ROK"))
+            alias_list = [a.strip() for a in alias_str.split(",") if a.strip()]
+
+    # [3] 데이터 로드 실행
+    actual_lines_filename = "블록C_라인쌍_기본5세트.csv"
+    if "확인용 3세트" in lines_source_opt:
+        actual_lines_filename = "블록C_라인쌍_확인용3세트.csv"
+        
+    if uploaded_lines_file is not None:
+        df_lines_raw = parse_orange_csv(uploaded_lines_file, skip_orange=skip_orange)
+        loaded_lines_name = uploaded_lines_file.name
+    else:
+        lines_path = get_data_path(actual_lines_filename)
+        df_lines_raw = parse_orange_csv(lines_path, skip_orange=skip_orange) if lines_path else None
+        loaded_lines_name = actual_lines_filename
+        
+    actual_coef_filename = "블록C_배출계수.csv"
+    if uploaded_coef_file is not None:
+        df_coef_raw = parse_orange_csv(uploaded_coef_file, skip_orange=skip_orange)
+        loaded_coef_name = uploaded_coef_file.name
+    else:
+        coef_path = get_data_path(actual_coef_filename)
+        df_coef_raw = parse_orange_csv(coef_path, skip_orange=skip_orange) if coef_path else None
+        loaded_coef_name = actual_coef_filename
+
+    if df_lines_raw is None or df_coef_raw is None:
+        st.error("❌ 블록 C 서류 데이터 또는 배출계수 파일을 로드할 수 없습니다.")
+    else:
+        st.info(f"📂 **선택된 서류 파일:** `{loaded_lines_name}` ({len(df_lines_raw)} 라인) | **배출계수 파일:** `{loaded_coef_name}` ({len(df_coef_raw)} 품목군)")
+        
+        summary_df, diff_df, prompts_dict = run_block_c_pipeline(
+            df_lines=df_lines_raw,
+            df_coef=df_coef_raw,
+            tol=tol_val,
+            convert_mt=convert_mt,
+            korea_aliases=alias_list,
+            base_weight=base_wt
+        )
+        
+        total_sets = len(summary_df)
+        danger_sets = len(summary_df[summary_df['risk_flags'] > 0])
+        safe_sets = total_sets - danger_sets
+        total_issues = len(diff_df)
+        
+        m_bc1, m_bc2, m_bc3, m_bc4 = st.columns(4)
+        m_bc1.metric("총 검증 세트", f"{total_sets} 세트")
+        m_bc2.metric("정상 세트 (위험=0)", f"{safe_sets} 세트", delta="통관 적격")
+        m_bc3.metric("위험 세트 (진단 대상)", f"{danger_sets} 세트", delta=f"-{danger_sets} 건 주의", delta_color="inverse")
+        m_bc4.metric("적출된 불일치 라인", f"{total_issues} 건", delta="1차 후보")
+        
+        bc_t1, bc_t2, bc_t3, bc_t4 = st.tabs([
+            "📊 ① 세트별 집계 및 배출량 결과",
+            "🔍 ② 라인별 불일치 후보 목록",
+            "🤖 ③ AI 보고서·진단서 프롬프트 생성기",
+            "📥 ④ 결과 CSV & ZIP 다운로드 센터"
+        ])
+        
+        with bc_t1:
+            st.markdown("##### 📋 세트별 집계, CBAM 배출량 산정 및 리스크 플래그")
+            st.caption("품목군별 CBAM 공식 적용 결과와 인보이스-패킹리스트 합계 오차율, 위험 신호(risk_flags) 집계 현황입니다.")
             
-        # 통합 에이전트 실행
-        docs = df_shipping.copy()
-        docs["상품설명"] = docs["상품영문명"].astype(str) + " " + docs["사양"].astype(str)
-        
-        vec_c = models["tfidf"].transform(docs["상품설명"])
-        docs["예측_HS코드"] = models["hs_model"].predict(vec_c)
-        
-        X_esg_c = docs[["협력사_환경위반건수", "협력사_노동평가점수"]]
-        docs["위험_확률"] = models["esg_model"].predict_proba(X_esg_c)[:, 1]
-        docs["판정"] = docs["위험_확률"].apply(lambda p: "위험" if p >= c_threshold else "정상")
-        docs["워치리스트_관찰대상"] = docs["예측_HS코드"].apply(lambda c: "예 (주의)" if str(c) in WATCHLIST_HS_CODES else "-")
-        
-        # 정렬
-        sorted_docs = docs.sort_values("위험_확률", ascending=False).reset_index(drop=True)
-        review_targets = sorted_docs[sorted_docs["판정"] == "위험"].reset_index(drop=True)
-        
-        r_col1, r_col2 = st.columns(2)
-        r_col1.metric("오늘 검토가 필요한 건", f"{len(review_targets)} 건", delta="우선 조치 대상")
-        r_col2.metric("전체 점검 서류 건수", f"{len(sorted_docs)} 건")
-        
-        st.markdown("**전체 선적 서류 스크리닝 결과 (위험도 내림차순 정렬)**")
-        show_cols = ["문서번호", "상품영문명", "사양", "협력사_환경위반건수", "협력사_노동평가점수", "예측_HS코드", "위험_확률", "판정", "워치리스트_관찰대상"]
-        
-        disp_c = sorted_docs[show_cols].copy()
-        disp_c["위험_확률"] = (disp_c["위험_확률"] * 100).round(1).astype(str) + "%"
-        
-        def highlight_c(row):
-            if row["판정"] == "위험":
-                return ["background-color: #FEE2E2; color: #991B1B; font-weight: 600;"] * len(row)
-            return ["background-color: #F0FDF4;"] * len(row)
+            disp_summary = summary_df[[
+                'set_id', 'item_group', 'method', 'emission_tCO2e',
+                'inv_amount', 'pl_amount', 'amt_diff_pct',
+                'inv_net_kg', 'pl_net_kg', 'net_diff_pct',
+                'risk_flags', 'routing'
+            ]].copy()
             
-        st.dataframe(disp_c.style.apply(highlight_c, axis=1), use_container_width=True, hide_index=True)
-        
-        if not review_targets.empty:
-            st.markdown("##### 📥 오늘의 검토 리포트 다운로드")
-            csv_data = review_targets.to_csv(index=False, encoding="utf-8-sig").encode("utf-8-sig")
+            disp_summary.columns = [
+                '세트 ID', '품목군', '배출량 산정 방식', '배출량 (tCO2e)',
+                '인보이스 금액($)', 'PL 금액($)', '금액 오차율',
+                '인보이스 중량(kg)', 'PL 중량(kg)', '중량 오차율',
+                '위험 신호 수', '처리 경로'
+            ]
+            
+            disp_summary['금액 오차율'] = disp_summary['금액 오차율'].apply(lambda x: f"{x:+.2%}")
+            disp_summary['중량 오차율'] = disp_summary['중량 오차율'].apply(lambda x: f"{x:+.2%}")
+            disp_summary['인보이스 금액($)'] = disp_summary['인보이스 금액($)'].apply(lambda x: f"{x:,.0f}")
+            disp_summary['PL 금액($)'] = disp_summary['PL 금액($)'].apply(lambda x: f"{x:,.0f}")
+            disp_summary['인보이스 중량(kg)'] = disp_summary['인보이스 중량(kg)'].apply(lambda x: f"{x:,.0f}")
+            disp_summary['PL 중량(kg)'] = disp_summary['PL 중량(kg)'].apply(lambda x: f"{x:,.0f}")
+            disp_summary['배출량 (tCO2e)'] = disp_summary['배출량 (tCO2e)'].apply(lambda x: f"{x:,.2f}")
+            
+            def highlight_set(row):
+                if "위험" in str(row['처리 경로']):
+                    return ['background-color: #FEF2F2; color: #991B1B; font-weight: 600;'] * len(row)
+                return ['background-color: #F0FDF4; color: #166534; font-weight: 500;'] * len(row)
+                
+            st.dataframe(disp_summary.style.apply(highlight_set, axis=1), use_container_width=True, hide_index=True)
+            
             st.download_button(
-                "오늘의 검토 리포트 CSV 다운로드",
-                data=csv_data,
-                file_name="오늘의_검토리포트.csv",
-                mime="text/csv"
+                "📥 세트별_결과.csv 다운로드",
+                data=summary_df.to_csv(index=False, encoding='utf-8-sig').encode('utf-8-sig'),
+                file_name="세트별_결과.csv",
+                mime="text/csv",
+                key="btn_dl_set_res"
             )
+
+        with bc_t2:
+            st.markdown("##### 🔍 1차 규칙 기반 라인별 불일치 후보 목록")
+            st.caption("수량, 금액, 순중량, 원산지, 품목명 중 인보이스와 패킹리스트 간 값이 다른 모든 라인을 1차 후보로 표시합니다. (표기 차이 여부는 AI가 최종 판정)")
+            
+            if diff_df.empty:
+                st.success("✅ 검증된 모든 라인이 완벽히 일치합니다! (불일치 후보 0건)")
+            else:
+                disp_diff = diff_df.copy()
+                disp_diff.columns = ['세트 ID', '라인 번호', '불일치 상세 이슈 내역 (Issue Text)']
+                st.dataframe(disp_diff, use_container_width=True, hide_index=True)
+                
+                st.download_button(
+                    "📥 라인별_불일치_후보.csv 다운로드",
+                    data=diff_df.to_csv(index=False, encoding='utf-8-sig').encode('utf-8-sig'),
+                    file_name="라인별_불일치_후보.csv",
+                    mime="text/csv",
+                    key="btn_dl_diff_res"
+                )
+
+        with bc_t3:
+            st.markdown("##### 🤖 세트별 AI 프롬프트 생성기 (ChatGPT / Claude 투입용)")
+            st.caption("세트를 선택하면 표준 7대 항목 서식의 보고서 프롬프트 및 위험 건 진단서 프롬프트가 실시간 조립됩니다.")
+            
+            set_options = summary_df['set_id'].tolist()
+            sel_set = st.selectbox("조회할 세트 ID 선택", set_options, key="sel_set_prompt")
+            
+            set_row = summary_df[summary_df['set_id'] == sel_set].iloc[0]
+            st.markdown(f"**선택된 세트 상태:** `{sel_set}` ({set_row['item_group']}) | 위험 신호: `{set_row['risk_flags']}개` ➔ **{set_row['routing']}**")
+            
+            pr_col1, pr_col2 = st.columns(2)
+            with pr_col1:
+                st.markdown(f"**📄 [{sel_set}] ESG 실사 보고서 프롬프트** (전체 세트 공통)")
+                report_content = set_row['report_prompt']
+                st.text_area("보고서 프롬프트 전문 (복사 가능)", value=report_content, height=320, key=f"txt_rep_{sel_set}")
+                st.download_button(
+                    f"💾 {sel_set}_보고서_프롬프트.txt 저장",
+                    data=report_content.encode('utf-8'),
+                    file_name=f"{sel_set}_보고서_프롬프트.txt",
+                    mime="text/plain",
+                    key=f"dl_rep_{sel_set}"
+                )
+                
+            with pr_col2:
+                st.markdown(f"**🚨 [{sel_set}] 수출 규제 리스크 진단서 프롬프트** (위험 신호 > 0인 경우)")
+                if set_row['risk_flags'] > 0:
+                    diag_content = set_row['diag_prompt']
+                    st.text_area("진단서 프롬프트 전문 (복사 가능)", value=diag_content, height=320, key=f"txt_diag_{sel_set}")
+                    st.download_button(
+                        f"💾 {sel_set}_진단서_프롬프트.txt 저장",
+                        data=diag_content.encode('utf-8'),
+                        file_name=f"{sel_set}_진단서_프롬프트.txt",
+                        mime="text/plain",
+                        key=f"dl_diag_{sel_set}"
+                    )
+                else:
+                    st.info(f"✨ `{sel_set}`은 위험 신호가 0이므로 진단서 생성이 생략됩니다. (정상 건 ➔ 보고서만 생성)")
+
+            st.markdown("""
+            > 💡 **AI 대화창 투입 팁**:
+            > 1. 위 프롬프트를 복사하여 **ChatGPT** 또는 **Claude** 대화창에 그대로 붙여넣으세요.
+            > 2. 진단서 프롬프트를 넣을 때는 `CBAM 가이드라인` 및 `배출량 산정 규정표` 문서를 함께 첨부하면 조항 번호가 정확히 인용됩니다.
+            """)
+
+        with bc_t4:
+            st.markdown("##### 📦 전체 결과 패키지 다운로드 센터 (CSV & ZIP)")
+            st.caption("생성된 CSV 2종과 모든 세트의 보고서·진단서 프롬프트 텍스트 파일들을 한 번에 다운로드할 수 있습니다.")
+            
+            dl_c1, dl_c2, dl_c3 = st.columns(3)
+            with dl_c1:
+                st.markdown("**1. 세트별 집계 결과**")
+                st.download_button(
+                    "📥 세트별_결과.csv 다운로드",
+                    data=summary_df.to_csv(index=False, encoding='utf-8-sig').encode('utf-8-sig'),
+                    file_name="세트별_결과.csv",
+                    mime="text/csv",
+                    key="btn_dl_all_csv1"
+                )
+            with dl_c2:
+                st.markdown("**2. 라인별 불일치 후보**")
+                st.download_button(
+                    "📥 라인별_불일치_후보.csv 다운로드",
+                    data=diff_df.to_csv(index=False, encoding='utf-8-sig').encode('utf-8-sig'),
+                    file_name="라인별_불일치_후보.csv",
+                    mime="text/csv",
+                    key="btn_dl_all_csv2"
+                )
+            with dl_c3:
+                st.markdown("**3. 전체 프롬프트 & CSV 압축팩**")
+                zip_data = create_block_c_zip(summary_df, diff_df, prompts_dict)
+                st.download_button(
+                    "📦 전체_결과_프롬프트.zip 다운로드",
+                    data=zip_data,
+                    file_name="BlockC_결과_전체_패키지.zip",
+                    mime="application/zip",
+                    key="btn_dl_all_zip"
+                )
+
+    # 2.4 부가: 선적 서류 일괄 머신러닝 스크리닝 (기존 모델 병합)
+    with st.expander("📦 부가 실습: 선적 서류 일괄 머신러닝 스크리닝 (블록 A + 블록 B 결합)"):
+        c_threshold = st.slider("리포트 필터 임계값 (오늘 검토할 위험 확률 기준)", 0.1, 0.9, 0.5, 0.05, key="c_thresh_sub")
+        df_shipping = load_csv("shipping_docs_sample.csv")
+        if df_shipping is not None:
+            if "선적ID" in df_shipping.columns and "문서번호" not in df_shipping.columns:
+                df_shipping = df_shipping.rename(columns={"선적ID": "문서번호"})
+            docs = df_shipping.copy()
+            docs["상품설명"] = docs["상품영문명"].astype(str) + " " + docs["사양"].astype(str)
+            vec_c = models["tfidf"].transform(docs["상품설명"])
+            docs["예측_HS코드"] = models["hs_model"].predict(vec_c)
+            X_esg_c = docs[["협력사_환경위반건수", "협력사_노동평가점수"]]
+            docs["위험_확률"] = models["esg_model"].predict_proba(X_esg_c)[:, 1]
+            docs["판정"] = docs["위험_확률"].apply(lambda p: "위험" if p >= c_threshold else "정상")
+            docs["워치리스트_관찰대상"] = docs["예측_HS코드"].apply(lambda c: "예 (주의)" if str(c) in WATCHLIST_HS_CODES else "-")
+            sorted_docs = docs.sort_values("위험_확률", ascending=False).reset_index(drop=True)
+            review_targets = sorted_docs[sorted_docs["판정"] == "위험"].reset_index(drop=True)
+            
+            st.markdown(f"**전체 점검 서류:** `{len(sorted_docs)}건` | **오늘 검토 필요:** `{len(review_targets)}건`")
+            show_cols = ["문서번호", "상품영문명", "사양", "협력사_환경위반건수", "협력사_노동평가점수", "예측_HS코드", "위험_확률", "판정", "워치리스트_관찰대상"]
+            disp_c = sorted_docs[show_cols].copy()
+            disp_c["위험_확률"] = (disp_c["위험_확률"] * 100).round(1).astype(str) + "%"
+            st.dataframe(disp_c, use_container_width=True, hide_index=True)
+            if not review_targets.empty:
+                st.download_button(
+                    "오늘의 검토 리포트 CSV 다운로드",
+                    data=review_targets.to_csv(index=False, encoding="utf-8-sig").encode("utf-8-sig"),
+                    file_name="오늘의_검토리포트.csv",
+                    mime="text/csv",
+                    key="dl_ml_review"
+                )
 
 # =============================================================================
 # TAB 1 [UI 순서 2번째]: 서류 교차 검증 & 사유서 진단 (2일차)
@@ -740,8 +1251,21 @@ with tabs[1]:
         st.markdown("#### 상업송장 vs 수출신고필증 자동 교차 검증")
         st.caption("단위 환산 규칙(1 ton = 1,000 kg), HS Code 일치 여부, 원산지 누락을 자동으로 검증합니다.")
         
-        df_inv = load_excel("sample_invoice.xlsx")
-        df_exp = load_excel("sample_export_declaration.xlsx")
+        # 서류 파일 선택 및 직접 업로드 옵션
+        with st.expander("📂 서류 파일 선택 및 직접 업로드 (기본 샘플 자동 로드)", expanded=False):
+            f_inv_col, f_exp_col = st.columns(2)
+            with f_inv_col:
+                inv_sel = st.selectbox("상업송장(Invoice) 파일 선택", ["기본 샘플 (sample_invoice.xlsx)", "📂 직접 엑셀 파일 업로드"], key="sel_inv_file")
+                up_inv = st.file_uploader("송장 엑셀 업로드 (.xlsx)", type=["xlsx"], key="up_inv_file") if "직접" in inv_sel else None
+            with f_exp_col:
+                exp_sel = st.selectbox("수출신고필증 파일 선택", ["기본 샘플 (sample_export_declaration.xlsx)", "📂 직접 엑셀 파일 업로드"], key="sel_exp_file")
+                up_exp = st.file_uploader("신고필증 엑셀 업로드 (.xlsx)", type=["xlsx"], key="up_exp_file") if "직접" in exp_sel else None
+                
+        df_inv = pd.read_excel(up_inv) if up_inv is not None else load_excel("sample_invoice.xlsx")
+        df_exp = pd.read_excel(up_exp) if up_exp is not None else load_excel("sample_export_declaration.xlsx")
+        inv_name = up_inv.name if up_inv else "sample_invoice.xlsx"
+        exp_name = up_exp.name if up_exp else "sample_export_declaration.xlsx"
+        st.info(f"📂 **적용 중인 서류:** 송장 `{inv_name}` ↔ 신고필증 `{exp_name}`")
         
         if df_inv is not None and df_exp is not None:
             # 병합 및 검증 로직
@@ -1218,46 +1742,263 @@ Hanbit Metal Co., Ltd.
 # TAB 6: Render 배포 & 시스템 가이드
 # =============================================================================
 with tabs[5]:
-    st.subheader("🚀 웹 Render.com 배포 가이드 & 전체 교육과정 아키텍처")
-    st.caption("본 웹 애플리케이션은 클라우드 PaaS(Render.com)에 원클릭으로 무료 배포할 수 있도록 완벽히 패키징되어 있습니다.")
+    st.subheader("🚀 블록 C 앱 배포 가이드 & Render.com 클라우드 배포 매뉴얼")
+    st.caption("Windows 무설치 exe 패키징부터 PaaS(Render.com) 무료 배포, 학생 실습용 3단계 프롬프트와 버전 트러블슈팅 완벽 가이드")
     
-    col_rep1, col_rep2 = st.columns(2)
+    guide_t1, guide_t2 = st.tabs([
+        "📑 블록 C 앱 배포 가이드 & 버전/프롬프트 매뉴얼 (2026-09-21)",
+        "🌐 Render.com 원클릭 무료 배포 & 교육과정 모듈 맵"
+    ])
     
-    with col_rep1:
-        st.markdown("""
-        #### 🌐 Render.com 원클릭 무료 배포 절차
-        1. **GitHub 저장소 푸시:**
-           - 현재 폴더의 모든 파일(`app.py`, `requirements.txt`, `Procfile`, `render.yaml`, `data/`)을 GitHub 레포지토리에 푸시합니다.
-        2. **Render.com 접속 및 새 웹 서비스 생성:**
-           - [dashboard.render.com](https://dashboard.render.com) 로그인
-           - **New +** ➔ **Web Service** 클릭 ➔ GitHub 저장소 연결
-        3. **배포 설정값 입력:**
-           - **Name:** `esg-trade-compliance-platform`
-           - **Environment:** `Python 3`
-           - **Build Command:** `pip install -r requirements.txt`
-           - **Start Command:** `streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true`
-           - **Plan:** `Free`
-        4. **Deploy Web Service 클릭:**
-           - 빌드 완료 후 제공되는 공개 URL(예: `https://esg-trade-compliance.onrender.com`)로 전 세계 어디서나 접속 가능!
-        """)
+    with guide_t1:
+        # 0. 핵심 요약
+        st.markdown(r"""
+        <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.15) 0%, rgba(15, 23, 42, 0.25) 100%); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 10px; padding: 18px; margin-bottom: 20px;">
+            <h4 style="color: #60A5FA; margin-top: 0; margin-bottom: 8px;">📌 [핵심 요약] 버전 문제와 프롬프트 정리 (2026-09-21)</h4>
+            <ul style="margin-bottom: 0; line-height: 1.7; font-size: 0.95rem;">
+                <li><b>빌드 실패 원인:</b> Python 3.14 자체가 아니라, pip이 없는 <b>MSYS2 Python</b>이 기본 실행자로 잡혀서 패키지 설치 단계에서 중단된 것이었으며, <b>python.org 공식 Python 3.13</b>으로 빌드하여 완벽히 성공함.</li>
+                <li><b>권장 버전:</b> 빌드는 Windows에서 <b>공식 Python 3.13</b>으로 진행 (빌드, 실행, Python 없는 타 PC 무설치 실행까지 교차 검증 완료).</li>
+                <li><b>배포 원칙:</b> <code>dist\BlockC</code> <b>폴더 전체를 통째로(zip) 압축하여 전달</b>해야 함. <code>BlockC.exe</code> 단독으로는 <code>_internal</code> 런타임이 없어 실행되지 않음.</li>
+                <li><b>실습 순서:</b> 학생에게는 <b>프롬프트 ①(에이전트 만들기) ➔ ②(Streamlit 앱 만들기) ➔ ③(exe 패키징)</b>을 순서대로 부여.</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
         
-    with col_rep2:
-        st.markdown("""
-        #### 💻 로컬 PC 실행 방법 (Windows / Mac / Linux)
-        ```bash
-        # 1. 필수 라이브러리 설치
-        pip install -r requirements.txt
+        # 1. Python 버전 문제
+        with st.expander("1. Python 버전 문제 및 해결 (공식 3.13 vs MSYS2)", expanded=True):
+            st.markdown(r"""
+            #### 🔍 Python 종류별 빌드 가능 여부 및 권장 상태
+            빌드 당시 `python` 명령어가 MSYS2에 딸려 온 Python(3.14.5)을 가리켰고, 해당 환경에는 pip이 없었습니다.
+            """)
+            
+            ver_data = [
+                {"Python 종류": "공식 3.13 (python.org)", "경로 예시": "C:\\Users\\...\\Python313", "빌드 사용": "가능 (적극 권장)", "확인된 상태": "Windows에서 빌드, 실행, Python 없는 PC 실행 성공"},
+                {"Python 종류": "공식 3.12 (python.org)", "경로 예시": "C:\\Users\\...\\Python312", "빌드 사용": "가능 (안정적)", "확인된 상태": "권장 후보 (대다수 라이브러리 완벽 호환)"},
+                {"Python 종류": "공식 3.14 (python.org)", "경로 예시": "C:\\Users\\...\\Python314", "빌드 사용": "가능성 있음", "확인된 상태": "리눅스 3.14에서는 빌드/실행 성공, 윈도우는 검증 필요"},
+                {"Python 종류": "MSYS2 Python", "경로 예시": "C:\\msys64\\ucrt64\\bin\\python.exe", "빌드 사용": "❌ 불가", "확인된 상태": "pip 없음. 삭제 시 MSYS2 환경 깨지므로 그대로 두고 우회"}
+            ]
+            st.table(pd.DataFrame(ver_data))
+            
+            st.markdown(r"""
+            **겪은 순서 & 조치 내용:**
+            1. `build_exe.bat` 실행 시 `C:\msys64\ucrt64\bin\python.exe: No module named pip` 오류로 패키지 설치 단계에서 중단됨.
+            2. 배치파일이 공식 Python(`py` 런처)을 우선 쓰도록 수정. `py -3`은 최상위 버전(3.14)을 고르기 때문에, `3.13 ➔ 3.12 ➔ 3.14` 순서로 직접 지정.
+            3. 공식 Python 3.13 설치 후 빌드에 성공하여 `dist\BlockC` 패키지 생성 완료.
+            
+            **확인 명령어 (cmd에서 실행):**
+            ```cmd
+            py -0p          :: 공식 설치본 목록과 경로 확인 (MSYS2는 표시 안 됨)
+            where python    :: 맨 위 경로가 C:\msys64\...이면 MSYS2 Python이 우선순위임
+            python --version:: 버전 번호 없이 'Python'만 나오면 MS Store 가짜 바로가기임
+            ```
+            - **삭제/유지 팁:** 공식 Python은 `설정 → 앱 → 설치된 앱`에서 제거 가능. MSYS2 Python은 건드리지 않음. 이미 빌드된 `BlockC.exe`는 Python을 지워도 독립 실행됨.
+            """)
+            
+        # 2. 배포 순서 및 폴더 구성
+        with st.expander("2. 배포 순서 및 폴더 구성 (PyInstaller onedir)", expanded=True):
+            st.markdown(r"""
+            #### 📦 배포 순서 (Python 없는 다른 PC에서 실행하기)
+            1. **빌드 (한 번):** 공식 Python 3.13 설치(설치 시 `Add python.exe to PATH` 체크) ➔ `block_c_app.py`, `run_app.py`, `build_exe.bat`을 같은 폴더에 두고 `build_exe.bat` 더블클릭 ➔ 5~10분 뒤 `[3/3] 성공!` 메시지와 함께 `dist\BlockC\BlockC.exe` 생성.
+            2. **시험:** `BlockC.exe`를 실행하여 샘플 데이터로 기능 확인 ➔ 종료 시 콘솔 창 닫기.
+            3. **배포 폴더 구성:** `dist` 안의 `BlockC` 폴더를 복사하고, `BlockC.exe` 옆에 CSV 2개를 동봉.
+            4. **압축과 전달:** `BlockC` 폴더를 zip으로 압축(약 400MB)하여 USB, 구글 드라이브 등으로 전달.
+            5. **사용 (받는 PC):** zip을 `C:\BlockC`처럼 짧은 영문 경로에 풀고 `BlockC.exe` 더블클릭.
+            
+            ```text
+            📂 배포 폴더 구조:
+            BlockC/
+            ├── BlockC.exe                  (실행 파일)
+            ├── _internal/                  (필수 런타임: Python, Streamlit, pandas 내장)
+            ├── 블록C_라인쌍_기본5세트.csv     (기본 샘플 CSV)
+            └── 블록C_배출계수.csv            (기본 배출계수 마스터 CSV)
+            ```
+            > ⚠️ **주의사항:** 폴더 전체를 옮겨야 합니다. `BlockC.exe` 단독으로는 실행되지 않습니다! (화면에서 업로드 기능이 있으므로 CSV가 없어도 무방)
+            """)
+            
+        # 3. 학생용 프롬프트 ① 에이전트 만들기
+        with st.expander("3. 학생용 프롬프트 ①: 파이썬 에이전트 만들기 (block_c_agent.py)", expanded=False):
+            prompt_1 = """[목표]
+서류 데이터(CSV)를 넣으면 배출량 산정, 인보이스–패킹리스트 교차 검증, 보고서·진단서 프롬프트 생성까지 한 번에 되는 파이썬 스크립트 block_c_agent.py 를 만들어 주세요.
+실행: python block_c_agent.py                      (기본 5세트)
+      python block_c_agent.py 다른파일.csv          (다른 서류 세트)
+필요: Python 3.x, pandas
+ 
+[역할 나눔]
+- 스크립트(규칙)는 값이 다르면 모두 '불일치 후보'로 표시하고 배출량을 계산합니다.
+- 표기 차이인지 진짜 오류인지의 최종 판단은 AI가 합니다. 스크립트는 AI에 붙여넣을 프롬프트 파일만 만듭니다.
+- 위험 판정에는 수량, 원산지, 금액(합계), 순중량(합계) 네 가지만 씁니다. 품목명은 후보에는 표시하지만 위험 판정에는 넣지 않습니다.
+ 
+[입력 파일 1] 블록C_라인쌍_기본5세트.csv  (UTF-8, 한 줄 = 인보이스와 패킹리스트의 같은 품목 한 쌍)
+열: set_id, line_no, item_group, inv_desc, pl_desc, hs_code, inv_qty, pl_qty, inv_unit, pl_qty_text, inv_amount, pl_amount, inv_net_kg, pl_net, pl_net_unit, inv_origin, pl_origin, energy_gj, power_mwh
+- 2~3번째 줄은 열 종류 표시(Orange용)이므로 pd.read_csv(..., skiprows=[1, 2]) 로 건너뜁니다.
+- energy_gj, power_mwh 는 비어 있을 수 있고, 같은 세트 안에서는 값이 반복됩니다.
+- pl_net 은 패킹리스트 순중량이고 단위는 pl_net_unit (kg 또는 MT) 입니다.
+ 
+[입력 파일 2] 블록C_배출계수.csv  (같은 형식, 2~3번째 줄 건너뜀)
+열: item_group, gj_coef, default_t, direct_t, power_mwh_coef
+계수 값은 파일에서 읽고 코드에 직접 적지 마세요.
+ 
+[스크립트 위쪽 '내가 정하는 값' 구역]
+LINES_CSV = 실행 인자가 있으면 그 파일, 없으면 "블록C_라인쌍_기본5세트.csv"
+COEF_CSV = "블록C_배출계수.csv",  OUT_DIR = "결과"
+TOL = 0.005                 # 허용 오차(합계 기준) 0.5%
+BASE_WEIGHT = "인보이스 순중량"   # 프롬프트에 표시되는 기준 중량 문구
+KOREA_ALIASES = ["REPUBLIC OF KOREA", "KOREA"]   # 주석: v2에서 "KR", "ROK" 추가
+CONVERT_MT_TO_KG = False                         # 주석: v2에서 True
+ 
+[Step 9-1 라인별 교차 검증]
+1. 패킹리스트 순중량 pl_net_kg: CONVERT_MT_TO_KG 가 True 이고 pl_net_unit 이 "MT" 이면 pl_net × 1000, 아니면 pl_net 그대로.
+2. 원산지 비교용 값: KOREA_ALIASES 에 있는 표기는 모두 "KOREA" 로 통일한 뒤 비교.
+3. 아래가 서로 다르면 각각 불일치 표시(f_qty, f_amt, f_net, f_origin, f_desc). 값이 다르면 무조건 후보이며, 표기 차이인지 판단하지 않습니다.
+   수량(inv_qty ≠ pl_qty), 금액(inv_amount ≠ pl_amount), 순중량(inv_net_kg ≠ pl_net_kg), 원산지(통일 후), 품목명(inv_desc ≠ pl_desc)
+4. 불일치가 있는 행은 issue_text 를 만듭니다. 아래 순서와 형식으로 이어 붙이고, 숫자는 f"{x:,.10g}" 로 씁니다.
+   시작: "[SET-02 2행] "
+   수량:   "수량 30→32 (인보이스 {inv_unit} / PL {pl_qty_text}); "
+   금액:   "금액 20,000→25,000; "
+   순중량: "순중량 12,000 kg→12,800 kg; "   (뒤쪽 단위는 pl_net_unit, 앞쪽은 kg)
+   원산지: "원산지 {inv_origin}→{pl_origin}; "   (통일 전 원래 표기)
+   품목명: "품목명 [{inv_desc}]→[{pl_desc}]; "
+ 
+[Step 9-2 세트별 집계, 배출량, 위험 신호]
+- set_id 별로 묶어서: item_group 첫 값 / 금액·순중량 합계(인보이스, 패킹리스트) / 수량·원산지·품목명 불일치 건수 합 / energy_gj, power_mwh 는 평균(라인마다 같은 값이 반복되므로 합계가 아님. 비어 있으면 실측값 없음) / issue_text 는 공백으로 이어 붙임.
+- 배출계수는 item_group 기준으로 붙입니다.
+- 합계 차이율: amt_pct = (패킹리스트 합 − 인보이스 합) / 인보이스 합, net_pct 도 같은 방식. 절대값이 TOL 을 넘으면 flag_amt, flag_net = 1, 이내면 0.
+- 배출량(tCO2e): t = 인보이스 순중량 합계(kg) / 1000
+   · 비료: t × direct_t + power_mwh × power_mwh_coef  → 방식 문구 "직접+간접 합산"
+   · 철강, energy_gj > 0: energy_gj × gj_coef  → "직접배출(실측)"
+   · 철강, 실측 없음: t × default_t  → "기본값법(실측 없음→전환)"
+   · 그 외: t × default_t  → "기본값법"
+- 위험 신호 수 risk_flags = 수량 불일치 건수 + 원산지 불일치 건수 + flag_amt + flag_net  (품목명은 제외)
+ 
+[Step 10 / 10-1 프롬프트 조립]
+세트마다 아래 네 문장을 만들어 템플릿의 {doc_info} {emission_info} {check_info} {assumption_info} 자리에 채웁니다 (str.format 사용).
+- doc_info: "세트 SET-02 / 품목군 알루미늄 / 인보이스 합계: 금액 143,500 USD, 순중량 37,000 kg / 패킹리스트 합계: 금액 143,500 USD, 순중량 37,800 kg(규칙이 계산한 값)"
+- emission_info: "기본값법 적용. 결과 240.50 tCO2e. 입력값: 순중량 37.0 t × 기본값 6.5"
+   입력값 문구는 방식별로 다릅니다.
+   비료 "순중량 150.0 t × 직접배출계수 0.85 + 전력 120 MWh × 전력배출계수 0.45"
+   철강 실측 "실측 에너지 5,200 GJ × 직접배출계수 0.056"
+- check_info: 세트의 issue_text 를 이어 붙인 것 (없으면 "규칙 1차 검증에서 불일치 후보 없음") + 줄바꿈 + "합계 차이: 금액 +0.00%, 순중량 +2.16%"  (f"{x:+.2%}")
+- assumption_info: "허용 오차: 합계 기준 ±0.5% / 배출량 산정 기준 중량: 인보이스 순중량"
+템플릿 2개는 아래 텍스트를 한 글자도 바꾸지 말고 REPORT_TEMPLATE, DIAG_TEMPLATE 문자열로 넣어 주세요. ({ } 는 위 네 자리 외에는 없습니다.)
+ 
+[출력]
+- '결과' 폴더(없으면 생성). 실행을 시작할 때 이전 *_프롬프트.txt 는 지웁니다.
+- 세트별_결과.csv: 세트별 집계 전체 열 (utf-8-sig)
+- 라인별_불일치_후보.csv: 불일치가 있는 행만, 열은 set_id, line_no, issue_text (utf-8-sig)
+- 콘솔: 입력 파일명과 허용 오차를 먼저 출력하고, 세트 / 배출량(tCO2e) / 위험신호 / 처리를 표로 출력합니다.
+  처리 문구는 "위험 건 → 보고서 + 진단서" 또는 "정상 건 → 보고서만" 입니다."""
+            st.code(prompt_1, language="markdown")
+            
+            st.markdown("""
+            **검증 기대값 (기본 5세트 실행 결과):**
+            - `SET-01 철강`: 291.20 tCO2e / 위험 0 / 정상 건 (보고서만)
+            - `SET-02 알루미늄`: 240.50 tCO2e / 위험 2 / 위험 건 (보고서 + 진단서)
+            - `SET-03 비료`: 181.50 tCO2e / 위험 1 / 위험 건 (보고서 + 진단서)
+            - `SET-04 알루미늄`: 198.25 tCO2e / 위험 1 / 위험 건 (보고서 + 진단서)
+            - `SET-05 철강`: 94.92 tCO2e / 위험 1 / 위험 건 (보고서 + 진단서)
+            """)
 
-        # 2. Streamlit 웹 앱 실행
-        streamlit run app.py
-        ```
-        
-        #### 📚 교육과정 대응 모듈 맵
-        - **1일차:** CBAM 품목별 가이드라인, 노코드 리스크 스코어링 (1일차 탭)
-        - **2일차:** 서류 클리닝, 인보이스-신고필증 교차검증, 거부사유서 진단 (2일차 탭)
-        - **3·4일차:** 블록 A(HS Code), 블록 B(ESG 스크리닝), 블록 C(통합 에이전트) (3·4일차 탭)
-        - **5일차:** 종합 모니터링 대시보드, 자동 알림 발송 시뮬레이터 (5일차 탭)
-        - **6일차:** 통관규정 RAG 지식 검색, 신규 계약서/바이어 메일 감사 (6일차 탭)
-        """)
-        
-    st.info("💡 배포 파일 체크: `requirements.txt`, `Procfile`, `render.yaml` 및 `data/` 디렉토리가 모두 포함되어 클라우드 환경에서 의존성 없이 즉시 작동합니다.")
+        # 4. 학생용 프롬프트 ② 앱 만들기
+        with st.expander("4. 학생용 프롬프트 ②: Streamlit 앱 만들기 (block_c_app.py)", expanded=False):
+            prompt_2 = """[첨부] block_c_agent.py (파이썬 원본 스크립트)
+ 
+이 스크립트를 Streamlit 웹 화면으로 바꿔 주세요. 파일명은 block_c_app.py 로 해 주세요.
+ 
+[원칙]
+- 검증 규칙, 배출량 계산, 프롬프트 템플릿(REPORT_TEMPLATE, DIAG_TEMPLATE)은 원본 로직을 그대로 유지하고 바꾸지 마세요.
+- 원본의 설정값(TOL, KOREA_ALIASES, CONVERT_MT_TO_KG, BASE_WEIGHT)은 화면에서 조정할 수 있게 하고, 계산 로직은 화면 코드와 분리된 함수로 만드세요.
+ 
+[화면 요구사항]
+1. 사이드바: 라인쌍 CSV·배출계수 CSV 업로드(업로드가 없으면 같은 폴더의 기본 CSV 자동 사용), "2~3번째 줄 건너뛰기" 체크박스, 허용 오차(%), 한국 표기 목록, MT→kg 환산 체크박스, 기준 중량 문구, v1/v2 설정 전환
+2. 결과 탭: ① 세트별 결과(위험 세트 강조) ② 불일치 후보 ③ 프롬프트(세트 선택, 복사 버튼) ④ 결과 전체 zip 다운로드
+3. 상단에 검증 세트 수·위험 세트 수 요약 표시
+4. 필수 열이 없거나 파일이 잘못되면 원인을 알려 주는 오류 메시지
+5. 샘플 데이터로 체험하는 기능
+ 
+[기타]
+- pip install streamlit pandas 만으로 Windows에서 실행되고, 한글 CSV(UTF-8, CP949)를 읽을 수 있게 해 주세요.
+- 만든 뒤 직접 실행해서 오류가 없는지 확인해 주세요.
+- 마지막에 실행 방법(streamlit run block_c_app.py)을 알려 주세요."""
+            st.code(prompt_2, language="markdown")
+
+        # 5. 학생용 프롬프트 ③ exe 만들기
+        with st.expander("5. 학생용 프롬프트 ③: 무설치 실행파일 만들기 (build_exe.bat)", expanded=False):
+            prompt_3 = r"""[첨부] block_c_app.py
+ 
+이 Streamlit 앱을 Python이 없는 Windows PC에서도 실행되는 프로그램으로 만들고 싶습니다.
+ 
+- PyInstaller onedir 방식으로, 런처 run_app.py 와 빌드용 build_exe.bat 을 만들어 주세요.
+- 런처는 exe와 같은 폴더의 CSV를 읽게 하고(os.chdir), 브라우저를 자동으로 열게 해 주세요.
+- 아래 문제를 미리 피해 주세요.
+  · 첫 실행 때 Streamlit이 콘솔에서 이메일을 물어 멈추는 문제 (--server.headless=true 로 두고 브라우저는 webbrowser 로 직접 열기)
+  · --collect-all streamlit, --copy-metadata streamlit, --add-data 옵션 필요
+  · global.developmentMode=false 필요
+  · PC에 MSYS2처럼 pip 없는 Python이 있을 수 있으니 py 런처(py -3.13)를 우선 쓰고, 오류가 나면 멈춰서 원인과 build_log.txt 를 보여 줄 것
+- 빌드 후 dist\\BlockC 폴더를 통째로 배포하는 방법과 실행 순서를 알려 주세요."""
+            st.code(prompt_3, language="markdown")
+
+        # 6. AI 프롬프트 투입 방법 & 7. 오류별 문제 해결
+        with st.expander("6. AI 프롬프트 대화창 투입 요령 & 7. 오류별 해결 FAQ", expanded=False):
+            st.markdown("""
+            #### 💬 6. 앱이 만든 프롬프트를 AI에 넣는 방법
+            1. 앱의 프롬프트 탭에서 세트를 고르고 복사 버튼을 누릅니다.
+            2. ChatGPT나 Claude의 새 대화창에 그대로 붙여넣습니다.
+            3. 진단서 프롬프트는 `CBAM 가이드라인`과 `배출량 산정 규정표` 문서를 함께 첨부합니다. (프롬프트가 첨부 문서의 조항만 인용하도록 설계됨)
+            4. 위험 신호가 없는 세트는 보고서 프롬프트만 생성되며, 위험 신호가 있는 세트만 진단서 프롬프트가 추가됩니다.
+            
+            **결과 튜닝 후속 질의 예시:**
+            - `4번 불일치 목록을 표로 다시 정리해 줘`
+            - `표기 차이로 뺀 항목과 그 이유를 따로 보여 줘`
+            
+            ---
+            #### 🛠️ 7. 오류별 문제 해결 (Troubleshooting)
+            """)
+            
+            faq_data = [
+                {"증상": "No module named pip (경로에 C:\\msys64)", "원인": "pip 없는 MSYS2 Python이 기본 인터프리터로 선택됨", "해결 조치": "공식 Python 3.13 설치 후 새 cmd 창에서 build_exe.bat 재실행"},
+                {"증상": "배치가 몇 초 만에 끝나고 '아무 키나 누르세요'", "원인": "예전 배치파일이 오류 시 pause로 넘어감", "해결 조치": "새 build_exe.bat 사용 (오류 발생 시 [오류] 메시지에서 정지)"},
+                {"증상": "3.13을 설치했는데 3.14로 표시됨", "원인": "py -3 명령어가 시스템 내 최상위 버전을 우선 선택함", "해결 조치": "3.13을 직접 지정하는 새 배치파일 사용, 'py -0p'로 목록 확인"},
+                {"증상": "python --version에 Python만 나옴", "원인": "Microsoft Store의 빈 바로가기 앱", "해결 조치": "'py -0p'로 공식 설치 확인. 윈도우 앱 실행 별칭에서 python.exe 끄기"},
+                {"증상": "BlockC.exe 실행 시 콘솔 창이 바로 닫힘", "원인": "경로 한글 문제 또는 필수 파일 누락", "해결 조치": "cmd 창에서 BlockC.exe를 직접 실행하여 에러 메시지 확인"},
+                {"증상": "브라우저가 자동으로 안 열림", "원인": "자동 열기 지연 또는 팝업 차단", "해결 조치": "주소창에 http://localhost:8501 직접 입력"}
+            ]
+            st.table(pd.DataFrame(faq_data))
+
+    with guide_t2:
+        col_rep1, col_rep2 = st.columns(2)
+        with col_rep1:
+            st.markdown("""
+            #### 🌐 Render.com 원클릭 무료 배포 절차
+            1. **GitHub 저장소 푸시:**
+               - 모든 소스코드와 데이터셋이 포함된 리포지토리를 GitHub에 푸시합니다.
+            2. **Render.com 접속 및 새 웹 서비스 생성:**
+               - [dashboard.render.com](https://dashboard.render.com) 로그인
+               - **New +** ➔ **Web Service** 클릭 ➔ GitHub 저장소 연결
+            3. **배포 설정값 입력:**
+               - **Name:** `esg-trade-compliance-platform`
+               - **Environment:** `Python 3`
+               - **Build Command:** `pip install -r requirements.txt`
+               - **Start Command:** `streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true`
+               - **Plan:** `Free`
+            4. **Deploy Web Service 클릭:**
+               - 빌드 완료 후 제공되는 공개 URL(예: `https://esg-trade-compliance-platform.onrender.com`)로 전 세계 어디서나 즉시 접속 가능!
+            """)
+        with col_rep2:
+            st.markdown("""
+            #### 💻 로컬 PC 실행 방법 (Windows / Mac / Linux)
+            ```bash
+            # 1. 필수 라이브러리 설치
+            pip install -r requirements.txt
+
+            # 2. Streamlit 웹 앱 실행
+            streamlit run app.py
+            ```
+            
+            #### 📚 교육과정 대응 모듈 맵
+            - **1일차:** CBAM 품목별 가이드라인, 노코드 리스크 스코어링 (1일차 탭)
+            - **2일차:** 서류 클리닝, 인보이스-신고필증 교차검증, 거부사유서 진단 (2일차 탭)
+            - **3·4일차:** 블록 A(HS Code), 블록 B(ESG 스크리닝), 블록 C(통합 에이전트) (3·4일차 탭)
+            - **5일차:** 종합 모니터링 대시보드, 자동 알림 발송 시뮬레이터 (5일차 탭)
+            - **6일차:** 통관규정 RAG 지식 검색, 신규 계약서/바이어 메일 감사 (6일차 탭)
+            """)
+        st.info("💡 배포 파일 체크: `requirements.txt`, `Procfile`, `render.yaml` 및 `data/` 디렉토리가 모두 포함되어 클라우드 환경에서 의존성 없이 즉시 작동합니다.")

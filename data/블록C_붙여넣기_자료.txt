@@ -1,0 +1,258 @@
+﻿블록 C 붙여넣기 자료 (Orange 3.40 기준으로 헤드리스 실행 검증한 식·스크립트)
+==============================================================================
+※ 식의 따옴표는 모두 반각 " 입니다. 복사할 때 한글 프로그램이 ' " 를 둥근 따옴표로 바꾸지 않게 주의하세요.
+※ Group by 이후 열 이름은 'inv_amount - Sum'처럼 공백과 -가 들어가지만, Feature Constructor 식에서는
+   공백과 -가 밑줄(_)로 바뀌어 inv_amount___Sum 처럼 (밑줄 3개) 씁니다. 직접 타이핑하지 말고 화면의 변수 선택 목록에서 고르세요.
+
+■ 위젯 연결 순서 (Step 9)
+  File(블록C_라인쌍_*.csv) → FC-1 → FC-2 → FC-3 → Group by → Merge Data(Data) → FC-4 → FC-5 → Data Table
+  File(블록C_배출계수.csv) ────────────────→ Merge Data(Extra Data)
+
+■ FC-1  정규화 열 만들기 (Feature Constructor)
+  ※ 처음(v1)에는 아래 식으로 시작하고, 확인용 세트에서 오탐이 나오면 '보완(v2)' 식으로 바꿉니다.
+
+[FC-1 · v1 (시작 식)]
+  이름: pl_net_kg    종류: Numeric(숫자)
+  식  : pl_net
+
+  이름: inv_origin_n    종류: Text(텍스트)
+  식  : "KOREA" if inv_origin in ("REPUBLIC OF KOREA", "KOREA") else inv_origin
+
+  이름: pl_origin_n    종류: Text(텍스트)
+  식  : "KOREA" if pl_origin in ("REPUBLIC OF KOREA", "KOREA") else pl_origin
+
+[FC-1 · v2 (보완 식: 국가 약어 KR·ROK 추가, 톤(MT)→kg 환산 추가)]
+  이름: pl_net_kg    종류: Numeric(숫자)
+  식  : pl_net * 1000 if pl_net_unit == "MT" else pl_net
+
+  이름: inv_origin_n    종류: Text(텍스트)
+  식  : "KOREA" if inv_origin in ("REPUBLIC OF KOREA", "KOREA", "KR", "ROK") else inv_origin
+
+  이름: pl_origin_n    종류: Text(텍스트)
+  식  : "KOREA" if pl_origin in ("REPUBLIC OF KOREA", "KOREA", "KR", "ROK") else pl_origin
+
+[FC-2  라인별 비교 플래그 (0 = 일치, 1 = 불일치)]
+  이름: f_qty    종류: Numeric(숫자)
+  식  : 1 if inv_qty != pl_qty else 0
+
+  이름: f_amt    종류: Numeric(숫자)
+  식  : 1 if inv_amount != pl_amount else 0
+
+  이름: f_net    종류: Numeric(숫자)
+  식  : 1 if inv_net_kg != pl_net_kg else 0
+
+  이름: f_origin    종류: Numeric(숫자)
+  식  : 1 if inv_origin_n != pl_origin_n else 0
+
+  이름: f_desc    종류: Numeric(숫자)
+  식  : 1 if inv_desc != pl_desc else 0
+
+[FC-3  라인별 불일치 문구]
+  이름: issue_text    종류: Text(텍스트)
+  식  : ("[" + str(set_id) + " " + str(int(line_no)) + "행] " + ("수량 " + str(int(inv_qty)) + "→" + str(int(pl_qty)) + " (인보이스 " + inv_unit + " / PL " + pl_qty_text + "); " if f_qty else "") + ("금액 " + format(inv_amount, ",.10g") + "→" + format(pl_amount, ",.10g") + "; " if f_amt else "") + ("순중량 " + format(inv_net_kg, ",.10g") + " kg→" + format(pl_net, ",.10g") + " " + pl_net_unit + "; " if f_net else "") + ("원산지 " + inv_origin + "→" + pl_origin + "; " if f_origin else "") + ("품목명 [" + inv_desc + "]→[" + pl_desc + "]; " if f_desc else "")) if (f_qty + f_amt + f_net + f_origin + f_desc) > 0 else ""
+
+■ Group by 설정
+  그룹 기준(Group by): set_id
+  집계(Aggregations):
+    inv_amount   → Sum
+    pl_amount    → Sum
+    inv_net_kg   → Sum
+    pl_net_kg    → Sum
+    f_qty        → Sum
+    f_origin     → Sum
+    f_desc       → Sum
+    issue_text   → Concatenate
+    item_group   → Mode
+    energy_gj    → Mean
+    power_mwh    → Mean
+
+■ Merge Data 설정
+  옵션: Append columns from Extra data (추가 데이터의 열을 붙임)
+  짝 지을 열: Data 쪽 'item_group - Mode'  ↔  Extra Data 쪽 'item_group'
+
+  ※ 이 아래 두 식은 허용 오차 0.005(=0.5%)가 들어 있습니다. 내가 정한 허용 오차로 바꾸려면 두 식(flag_amt, flag_net)의 0.005를 함께 바꾸세요.
+
+[FC-4  합계 비교 (Merge Data 뒤)]
+  이름: amt_pct    종류: Numeric(숫자)
+  식  : (pl_amount___Sum - inv_amount___Sum) / inv_amount___Sum
+
+  이름: net_pct    종류: Numeric(숫자)
+  식  : (pl_net_kg___Sum - inv_net_kg___Sum) / inv_net_kg___Sum
+
+  이름: flag_amt    종류: Numeric(숫자)
+  식  : 1 if abs((pl_amount___Sum - inv_amount___Sum) / inv_amount___Sum) > 0.005 else 0
+
+  이름: flag_net    종류: Numeric(숫자)
+  식  : 1 if abs((pl_net_kg___Sum - inv_net_kg___Sum) / inv_net_kg___Sum) > 0.005 else 0
+
+[FC-5  배출량 산정과 위험 신호 (Feature Constructor)]
+  이름: emission    종류: Numeric(숫자)
+  식  : (inv_net_kg___Sum / 1000 * direct_t + power_mwh___Mean * power_mwh_coef) if item_group___Mode == "비료" else (energy_gj___Mean * gj_coef if energy_gj___Mean > 0 else inv_net_kg___Sum / 1000 * default_t)
+
+  이름: risk_flags    종류: Numeric(숫자)
+  식  : f_qty___Sum + f_origin___Sum + flag_amt + flag_net
+
+  이름: method_text    종류: Text(텍스트)
+  식  : "직접+간접 합산" if item_group___Mode == "비료" else (("직접배출(실측)" if energy_gj___Mean > 0 else "기본값법(실측 없음→전환)") if item_group___Mode == "철강" else "기본값법")
+
+■ Step 10  보고서 프롬프트 자동 조립 — Python Script 위젯 (FC-5 뒤에 연결)
+  Python Script 위젯을 열고 편집 창의 내용을 모두 지운 뒤 아래를 통째로 붙여넣고 Run 하세요.
+------------------------------------------------------------------------------
+from Orange.data import Table, Domain, StringVariable
+import numpy as np
+
+# ▼▼ 내가 정한 값 (Step 3~4에서 정한 허용 오차·기준 중량으로 문구만 바꾸세요. 실제 판정은 Feature Constructor 식의 0.005 입니다) ▼▼
+TOL = "합계 기준 ±0.5%"
+BASE_WEIGHT = "인보이스 순중량"
+# ▲▲▲
+
+def f(row, name):
+    v = row[name]
+    return float(v) if v == v else float("nan")
+
+def s(row, name):
+    return str(row[name])
+
+def build_blocks(row):
+    sid = s(row, "set_id"); grp = s(row, "item_group - Mode"); method = s(row, "method_text")
+    inv_amt = f(row, "inv_amount - Sum"); pl_amt = f(row, "pl_amount - Sum")
+    inv_net = f(row, "inv_net_kg - Sum");  pl_net = f(row, "pl_net_kg - Sum")
+    t = inv_net / 1000
+    energy = f(row, "energy_gj - Mean"); power = f(row, "power_mwh - Mean")
+    if grp == "비료":
+        inputs = f"순중량 {t:,.1f} t × 직접배출계수 {f(row,'direct_t')} + 전력 {power:,.0f} MWh × 전력배출계수 {f(row,'power_mwh_coef')}"
+    elif grp == "철강" and energy > 0:
+        inputs = f"실측 에너지 {energy:,.0f} GJ × 직접배출계수 {f(row,'gj_coef')}"
+    else:
+        inputs = f"순중량 {t:,.1f} t × 기본값 {f(row,'default_t')}"
+    issue = s(row, "issue_text - Concatenate").strip()
+    if issue in ("", "?"):
+        issue = "규칙 1차 검증에서 불일치 후보 없음"
+    doc_info = (f"세트 {sid} / 품목군 {grp} / 인보이스 합계: 금액 {inv_amt:,.0f} USD, 순중량 {inv_net:,.0f} kg / "
+                f"패킹리스트 합계: 금액 {pl_amt:,.0f} USD, 순중량 {pl_net:,.0f} kg(규칙이 계산한 값)")
+    emission_info = f"{method} 적용. 결과 {f(row,'emission'):,.2f} tCO2e. 입력값: {inputs}"
+    check_info = (f"{issue}\n합계 차이: 금액 {f(row,'amt_pct'):+.2%}, 순중량 {f(row,'net_pct'):+.2%}")
+    assumption_info = f"허용 오차: {TOL} / 배출량 산정 기준 중량: {BASE_WEIGHT}"
+    return sid, doc_info, emission_info, check_info, assumption_info
+
+def to_table(rows, colname):
+    dom = Domain([], metas=[StringVariable("set_id"), StringVariable(colname)])
+    return Table.from_numpy(dom, np.empty((len(rows), 0)), metas=np.array(rows, dtype=object))
+
+REPORT_TEMPLATE = """당신은 EU CBAM 대응 ESG 실사 보고서를 작성하는 무역 컴플라이언스 실무 보조자입니다.
+아래 [입력 자료]를 [표준 서식 항목]에 맞춰 정리해 보고서 초안을 작성해 주세요.
+
+[표준 서식 항목]
+1. 보고 개요 (세트 ID, 인보이스 번호, 품목군)
+2. 수출 건 정보 (수출자·수입자, 품목·HS Code, 수량·중량·금액)
+3. 내재 배출량 산정 (적용 방식, 입력값, 산식, 결과 tCO2e)
+4. 서류 교차 검증 결과 (비교 항목별 판정, 불일치 목록)
+5. 리스크 요약
+6. 권고 조치
+7. 근거 및 한계 (참조 문서, 산정 가정, 확인 필요 사항)
+
+[작성 규칙]
+- 7개 항목의 번호와 제목을 그대로 사용하고 순서를 바꾸지 않는다.
+- [입력 자료]에 있는 사실만 사용한다. 없는 값은 추정하지 말고 '해당 자료 없음'이라고 적는다.
+- 배출량과 합계 숫자는 입력 자료 그대로 옮긴다. 다시 계산해서 바꾸지 않는다.
+- (3) 교차 검증 결과는 규칙이 '값이 다르면 모두' 표시한 1차 후보이다. 약어·표기·단위 환산·국가 표기 차이로 설명되는 것은 오류가 아닌 '표기 차이'로 분류하여 4번의 불일치 목록에서 빼고 '참고'로 따로 적는다. 합계 차이가 허용 오차 이내이면 오류로 쓰지 않는다.
+- 판정이 애매하면 '확인 요망'으로 적고 이유를 한 줄 덧붙인다.
+- 내용이 없는 항목도 삭제하지 말고 '해당 없음'과 그 이유를 적는다.
+
+[입력 자료]
+(1) 서류 정보: {doc_info}
+(2) 배출량 산정 결과: {emission_info}
+(3) 교차 검증 결과(규칙 1차): {check_info}
+(4) 내가 정한 가정: {assumption_info}
+"""
+
+rows = []
+for row in in_data:
+    sid, d, e, c, a = build_blocks(row)
+    rows.append([sid, REPORT_TEMPLATE.format(doc_info=d, emission_info=e, check_info=c, assumption_info=a)])
+out_data = to_table(rows, "report_prompt")
+------------------------------------------------------------------------------
+
+■ Step 10-1  위험 건만 진단서 프롬프트 생성
+  FC-5 → Select Rows: 조건 = risk_flags  is greater than  0
+  Select Rows의 'Matching Data'(위험 건) → 아래 Python Script → Data Table
+  Select Rows의 'Unmatched Data'(정상 건) → Data Table (진단서 없음, 보고서만)
+------------------------------------------------------------------------------
+from Orange.data import Table, Domain, StringVariable
+import numpy as np
+
+# ▼▼ 내가 정한 값 (Step 3~4에서 정한 허용 오차·기준 중량으로 문구만 바꾸세요. 실제 판정은 Feature Constructor 식의 0.005 입니다) ▼▼
+TOL = "합계 기준 ±0.5%"
+BASE_WEIGHT = "인보이스 순중량"
+# ▲▲▲
+
+def f(row, name):
+    v = row[name]
+    return float(v) if v == v else float("nan")
+
+def s(row, name):
+    return str(row[name])
+
+def build_blocks(row):
+    sid = s(row, "set_id"); grp = s(row, "item_group - Mode"); method = s(row, "method_text")
+    inv_amt = f(row, "inv_amount - Sum"); pl_amt = f(row, "pl_amount - Sum")
+    inv_net = f(row, "inv_net_kg - Sum");  pl_net = f(row, "pl_net_kg - Sum")
+    t = inv_net / 1000
+    energy = f(row, "energy_gj - Mean"); power = f(row, "power_mwh - Mean")
+    if grp == "비료":
+        inputs = f"순중량 {t:,.1f} t × 직접배출계수 {f(row,'direct_t')} + 전력 {power:,.0f} MWh × 전력배출계수 {f(row,'power_mwh_coef')}"
+    elif grp == "철강" and energy > 0:
+        inputs = f"실측 에너지 {energy:,.0f} GJ × 직접배출계수 {f(row,'gj_coef')}"
+    else:
+        inputs = f"순중량 {t:,.1f} t × 기본값 {f(row,'default_t')}"
+    issue = s(row, "issue_text - Concatenate").strip()
+    if issue in ("", "?"):
+        issue = "규칙 1차 검증에서 불일치 후보 없음"
+    doc_info = (f"세트 {sid} / 품목군 {grp} / 인보이스 합계: 금액 {inv_amt:,.0f} USD, 순중량 {inv_net:,.0f} kg / "
+                f"패킹리스트 합계: 금액 {pl_amt:,.0f} USD, 순중량 {pl_net:,.0f} kg(규칙이 계산한 값)")
+    emission_info = f"{method} 적용. 결과 {f(row,'emission'):,.2f} tCO2e. 입력값: {inputs}"
+    check_info = (f"{issue}\n합계 차이: 금액 {f(row,'amt_pct'):+.2%}, 순중량 {f(row,'net_pct'):+.2%}")
+    assumption_info = f"허용 오차: {TOL} / 배출량 산정 기준 중량: {BASE_WEIGHT}"
+    return sid, doc_info, emission_info, check_info, assumption_info
+
+def to_table(rows, colname):
+    dom = Domain([], metas=[StringVariable("set_id"), StringVariable(colname)])
+    return Table.from_numpy(dom, np.empty((len(rows), 0)), metas=np.array(rows, dtype=object))
+
+DIAG_TEMPLATE = """당신은 수출 규제 리스크를 진단하는 무역 컴플라이언스 실무 보조자입니다.
+[입력 자료]와 첨부한 문서(CBAM 가이드라인, 배출량 산정 규정표)를 바탕으로 이 수출 건의 '수출 규제 리스크 진단서'를 작성해 주세요.
+
+[진단서 구성]
+1. 진단 대상 (세트 ID, 품목, 수출자 → 수입자)
+2. 종합 리스크 등급 (상 / 중 / 하 / 이상 없음 중 하나) 및 판단 이유 한 줄
+3. 발견된 오류 (오류마다: 위치, 인보이스 값, 패킹리스트 값, 오류 유형)
+4. 리스크 상세 (오류마다 통관·CBAM 신고·FTA 원산지 관점에서 생길 수 있는 문제)
+5. 근거 조항 (첨부 문서에 실제로 있는 조항 번호와 요지)
+6. 권고 조치 (오류마다: 누가, 무엇을 정정하거나 확인해야 하는지)
+7. 배출량 산정 결과의 신뢰도 (확정값 / 잠정값과 그 이유)
+
+[등급 기준 - 예시]
+- 상: 품목이나 원산지가 서로 다른 등 신고 정정과 재확인이 필요한 오류
+- 중: 수량·금액·중량 불일치로 서류 정정이 필요한 오류
+- 하: 허용 오차 이내 차이나 표기 차이만 있는 경우
+- 이상 없음: 실제 오류가 없는 경우
+
+[작성 규칙]
+- (3) 교차 검증 결과에 적힌 후보만 검토 대상으로 삼고, 오류를 새로 만들지 않는다.
+- (3)은 규칙이 '값이 다르면 모두' 표시한 1차 후보이다. 약어·표기·단위 환산·국가 표기 차이로 설명되는 것은 오류로 쓰지 않고 '표기 차이(오류 아님)'로 따로 적는다. 실제 오류가 하나도 없으면 '발견된 오류 없음', 종합 등급은 '이상 없음'으로 한다.
+- 근거 조항은 첨부 문서에서 실제로 찾을 수 있는 조항 번호와 문구만 인용한다. 찾을 수 없으면 조항 번호를 만들지 말고 '근거 조항 확인 필요'라고 적는다.
+- 배출량 숫자는 입력 자료 그대로 쓰고 다시 계산하지 않는다.
+
+[입력 자료]
+(1) 서류 정보: {doc_info}
+(2) 배출량 산정 결과: {emission_info}
+(3) 교차 검증 결과(규칙 1차): {check_info}
+(4) 내가 정한 가정: {assumption_info}
+"""
+
+rows = []
+for row in in_data:
+    sid, d, e, c, a = build_blocks(row)
+    rows.append([sid, DIAG_TEMPLATE.format(doc_info=d, emission_info=e, check_info=c, assumption_info=a)])
+out_data = to_table(rows, "diagnosis_prompt")
+------------------------------------------------------------------------------

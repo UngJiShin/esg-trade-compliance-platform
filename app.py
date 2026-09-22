@@ -599,34 +599,30 @@ st.markdown(f"""
         <span class="hero-chip" style="background: rgba(16, 185, 129, 0.2); border-color: #10B981; color: #6EE7B7;">🟢 시스템 상태: 정상 가동 중</span>
     </div>
     <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.18); font-size: 0.82rem;">
-        <span style="font-weight: 700; color: #93C5FD; margin-right: 4px;">📍 커리큘럼 로드맵:</span>
-        <span style="background: rgba(30, 58, 138, 0.7); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);"><b>1일차</b> CBAM 산정 & 가중치</span>
-        <span style="color: #94A3B8;">➔</span>
+        <span style="font-weight: 700; color: #93C5FD; margin-right: 4px;">📍 활성 실습 트랙:</span>
+        <span style="background: rgba(234, 179, 8, 0.25); color: #FDE047; padding: 4px 12px; border-radius: 6px; border: 1px solid #EAB308; font-weight: 800;">⭐ [3·4일차] 블록 C: CBAM 배출량 & 서류 교차검증 에이전트</span>
+        <span style="color: #94A3B8;">|</span>
         <span style="background: rgba(30, 58, 138, 0.7); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);"><b>2일차</b> 송장 교차검증 & 거부사유서</span>
-        <span style="color: #94A3B8;">➔</span>
-        <span style="background: rgba(49, 46, 129, 0.7); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);"><b>3·4일차</b> 블록 A·B·C AI 에이전트</span>
-        <span style="color: #94A3B8;">➔</span>
+        <span style="color: #94A3B8;">|</span>
         <span style="background: rgba(15, 23, 42, 0.7); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);"><b>5일차</b> 종합 대시보드 & 자동알림</span>
-        <span style="color: #94A3B8;">➔</span>
-        <span style="background: rgba(13, 148, 136, 0.7); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);"><b>6일차</b> RAG 규정검색 & 계약서감사</span>
+        <span style="color: #94A3B8;">|</span>
+        <span style="background: rgba(13, 148, 136, 0.7); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);"><b>가이드</b> 블록 C 배포 매뉴얼</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# 6개 핵심 탭 구성 (1일차 ~ 6일차 순서 정렬 및 라벨링)
+# 4개 핵심 탭 구성 (1일차, 6일차 제외 / 블록 C 전용 star ⭐ 집중)
 tabs = st.tabs([
-    "⚖️ [1일차] CBAM 배출량 & 노코드 에이전트",
+    "⭐ [3·4일차] 블록 C: CBAM 배출량 & 서류 교차검증 에이전트",
     "🔍 [2일차] 서류 교차검증 & 사유서 진단",
-    "🤖 [3·4일차] HS Code & ESG 예측 에이전트",
     "📊 [5일차] 종합 대시보드 & 자동 알림 관제",
-    "📚 [6일차] RAG 규정 지식검색 & 계약서 감사",
-    "🚀 [가이드] Render 클라우드 배포 매뉴얼"
+    "🚀 [가이드] 블록 C 앱 배포 & Render 매뉴얼"
 ])
 
 # =============================================================================
-# TAB 4 [UI 순서 4번째]: 5일차 종합 모니터링 대시보드 & 자동 알림 (5일차)
+# TAB 2: 5일차 종합 모니터링 대시보드 & 자동 알림 (5일차)
 # =============================================================================
-with tabs[3]:
+with tabs[2]:
     harbor_bg = f"background: linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 58, 138, 0.72) 60%, rgba(15, 23, 42, 0.9) 100%), url('data:image/jpeg;base64,{b64_harbor}') center/cover no-repeat;" if b64_harbor else "background: linear-gradient(135deg, #1E293B 0%, #1E3A8A 100%);"
     st.markdown(f"""
     <div class="feature-banner" style="{harbor_bg}">
@@ -847,91 +843,23 @@ Export Compliance Intelligence System (Automated Alert)
                     st.dataframe(df_tariff, use_container_width=True, hide_index=True)
 
 # =============================================================================
-# TAB 2 [UI 순서 3번째]: HS Code & ESG 예측 에이전트 (3·4일차 블록 A, B, C)
+# TAB 0: ⭐ [3·4일차] 블록 C: CBAM 배출량 & 서류 교차검증 에이전트
 # =============================================================================
-with tabs[2]:
+with tabs[0]:
     globe_bg = f"background: linear-gradient(135deg, rgba(10, 15, 30, 0.88) 0%, rgba(49, 46, 129, 0.75) 60%, rgba(15, 23, 42, 0.9) 100%), url('data:image/jpeg;base64,{b64_globe}') center/cover no-repeat;" if b64_globe else "background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%);"
     st.markdown(f"""
     <div class="feature-banner" style="{globe_bg}">
-        <div class="feature-tag" style="color: #A78BFA;">[3·4일차 실습] MACHINE LEARNING PREDICTION ENGINE</div>
-        <h3 class="feature-heading">3·4일차. 글로벌 공급망 AI 인텔리전스 예측 에이전트</h3>
-        <p class="feature-desc">3·4일차 교안: 영문 품목분류(TF-IDF + Random Forest) 및 공급망 ESG 위험도 지도학습 모델 병렬 추론 파이프라인</p>
+        <div class="feature-tag" style="color: #FBBF24;">⭐ [핵심 집중 실습] BLOCK C : CBAM & CROSS-VALIDATION AGENT</div>
+        <h3 class="feature-heading">⭐ 3·4일차. 블록 C: CBAM 배출량 산정 및 서류 교차검증 통합 에이전트</h3>
+        <p class="feature-desc">인보이스 ↔ 패킹리스트 라인 교차 검증, 품목별 CBAM 배출량 자동 산출, 합계 오차율 분석, AI 보고서/진단서 프롬프트 자동 조립 및 전체 결과 다운로드</p>
     </div>
     """, unsafe_allow_html=True)
     
     # 모델 학습
     models = train_prediction_models()
     
-    # 2.1 모델 성능 요약 배너
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("블록 A (HS코드) 정확도", f"{models['hs_acc']:.1%}")
-    m2.metric("블록 B (ESG위험) 정확도", f"{models['esg_acc']:.1%}")
-    m3.metric("블록 B 정밀도 (Precision)", f"{models['esg_prec']:.1%}")
-    m4.metric("블록 B 재현율 (Recall)", f"{models['esg_rec']:.1%}")
-    
-    st.divider()
-    
-    # 2.2 블록 A & B 개별 테스트
-    b_col1, b_col2 = st.columns(2)
-    
-    with b_col1:
-        st.markdown("#### [블록 A] 신규 품목 HS Code 자동 추천")
-        st.caption("영문 상품명과 규격 사양을 입력하면 TF-IDF와 Random Forest가 적합한 HS Code를 추천합니다.")
-        
-        sample_items = [
-            ("Custom Input", ""),
-            ("Aluminum Profile", "Alloy 6063-T5 Extruded"),
-            ("Hot Rolled Steel", "Coil Thickness 3.0mm Width 1200mm"),
-            ("Urea Fertilizer", "Prilled 46% Nitrogen"),
-            ("Compressed Hydrogen", "High Pressure Gas Cylinder")
-        ]
-        sel_sample = st.selectbox("테스트 샘플 선택", [s[0] for s in sample_items])
-        
-        if sel_sample == "Custom Input":
-            in_name = st.text_input("상품 영문명", "Aluminum Alloy Bar")
-            in_spec = st.text_input("상품 사양", "Diameter 50mm Round 6061-T6")
-        else:
-            match = [s for s in sample_items if s[0] == sel_sample][0]
-            in_name = st.text_input("상품 영문명", match[0])
-            in_spec = st.text_input("상품 사양", match[1])
-            
-        if st.button("🎯 HS Code 예측 실행", key="btn_hs_predict"):
-            combined = f"{in_name} {in_spec}"
-            vec = models["tfidf"].transform([combined])
-            pred_hs = models["hs_model"].predict(vec)[0]
-            proba = models["hs_model"].predict_proba(vec).max()
-            
-            is_watchlist = "⚠️ 전략물자 / 워치리스트 대상" if str(pred_hs) in WATCHLIST_HS_CODES else "일반 품목"
-            
-            st.success(f"추천 HS Code: **{pred_hs}** (예측 확신도: {proba*100:.1f}%)")
-            st.info(f"품목 분류 태그: **{is_watchlist}**")
-            
-    with b_col2:
-        st.markdown("#### [블록 B] 협력사 ESG 위험도 스크리닝")
-        st.caption("협력사의 환경 위반 건수와 노동평가 점수를 기반으로 부실/위험 협력사를 조기 탐지합니다.")
-        
-        in_env = st.slider("협력사 환경 위반 건수 (최근 3년)", 0, 10, 2)
-        in_labor = st.slider("협력사 노동/인권 평가 점수 (100점 만점)", 0, 100, 58)
-        
-        threshold_b = st.slider("분류 위험 임계값 (Threshold)", 0.1, 0.9, 0.5, 0.05, 
-                               help="이 값 이상이면 위험 협력사로 판정합니다.")
-        
-        prob_risk = models["esg_model"].predict_proba([[in_env, in_labor]])[0][1]
-        is_risk = prob_risk >= threshold_b
-        
-        st.markdown(f"**산출된 위험 확률:** `{prob_risk*100:.1f}%` (기준 임계값: `{threshold_b*100:.0f}%`)")
-        if is_risk:
-            st.error("🚨 판정 결과: **[위험] 공급망 실사 및 시정조치계획 제출 대상**")
-        else:
-            st.success("✅ 판정 결과: **[정상] 적격 공급사 (지속 모니터링)**")
-            
-        # 혼동행렬 표시
-        st.caption(f"테스트 데이터 Confusion Matrix: TN={models['cm'][0,0]}, FP={models['cm'][0,1]}, FN={models['cm'][1,0]}, TP={models['cm'][1,1]}")
-
-    st.divider()
-
-    # 2.3 블록 C: CBAM 배출량 산정 및 서류 교차검증 통합 에이전트 (block_c_app.py)
-    st.markdown("#### [블록 C] CBAM 배출량 산정 및 서류 교차검증 통합 에이전트")
+    # ⭐ [핵심 집중 실습] 블록 C: CBAM 배출량 산정 및 서류 교차검증 통합 에이전트
+    st.markdown("#### ⭐ [핵심 집중 실습] 블록 C: CBAM 배출량 산정 및 서류 교차검증 통합 에이전트")
     st.caption("인보이스와 패킹리스트 라인 데이터를 교차 검증하고, 품목별 배출량 산정, 오차 분석, AI 보고서/진단서 프롬프트를 자동 생성합니다.")
     
     # [1] 파일 선택 / 업로드 구역
@@ -1232,6 +1160,59 @@ with tabs[2]:
                     key="dl_ml_review"
                 )
 
+    # 2.5 보조 실습: 블록 A & 블록 B 개별 테스트
+    with st.expander("📂 [보조 실습] 블록 A (HS Code 자동 추천) & 블록 B (협력사 ESG 위험도 스크리닝)", expanded=False):
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("블록 A (HS코드) 정확도", f"{models['hs_acc']:.1%}")
+        m2.metric("블록 B (ESG위험) 정확도", f"{models['esg_acc']:.1%}")
+        m3.metric("블록 B 정밀도 (Precision)", f"{models['esg_prec']:.1%}")
+        m4.metric("블록 B 재현율 (Recall)", f"{models['esg_rec']:.1%}")
+        
+        st.divider()
+        b_col1, b_col2 = st.columns(2)
+        with b_col1:
+            st.markdown("#### [블록 A] 신규 품목 HS Code 자동 추천")
+            st.caption("영문 상품명과 규격 사양을 입력하면 TF-IDF와 Random Forest가 적합한 HS Code를 추천합니다.")
+            sample_items = [
+                ("Custom Input", ""),
+                ("Aluminum Profile", "Alloy 6063-T5 Extruded"),
+                ("Hot Rolled Steel", "Coil Thickness 3.0mm Width 1200mm"),
+                ("Urea Fertilizer", "Prilled 46% Nitrogen"),
+                ("Compressed Hydrogen", "High Pressure Gas Cylinder")
+            ]
+            sel_sample = st.selectbox("테스트 샘플 선택", [s[0] for s in sample_items], key="sel_sample_exp")
+            if sel_sample == "Custom Input":
+                in_name = st.text_input("상품 영문명", "Aluminum Alloy Bar", key="in_name_exp")
+                in_spec = st.text_input("상품 사양", "Diameter 50mm Round 6061-T6", key="in_spec_exp")
+            else:
+                match = [s for s in sample_items if s[0] == sel_sample][0]
+                in_name = st.text_input("상품 영문명", match[0], key="in_name_exp")
+                in_spec = st.text_input("상품 사양", match[1], key="in_spec_exp")
+                
+            if st.button("🎯 HS Code 예측 실행", key="btn_hs_predict_exp"):
+                combined = f"{in_name} {in_spec}"
+                vec = models["tfidf"].transform([combined])
+                pred_hs = models["hs_model"].predict(vec)[0]
+                proba = models["hs_model"].predict_proba(vec).max()
+                is_watchlist = "⚠️ 전략물자 / 워치리스트 대상" if str(pred_hs) in WATCHLIST_HS_CODES else "일반 품목"
+                st.success(f"추천 HS Code: **{pred_hs}** (예측 확신도: {proba*100:.1f}%)")
+                st.info(f"품목 분류 태그: **{is_watchlist}**")
+                
+        with b_col2:
+            st.markdown("#### [블록 B] 협력사 ESG 위험도 스크리닝")
+            st.caption("협력사의 환경 위반 건수와 노동평가 점수를 기반으로 부실/위험 협력사를 조기 탐지합니다.")
+            in_env = st.slider("협력사 환경 위반 건수 (최근 3년)", 0, 10, 2, key="in_env_exp")
+            in_labor = st.slider("협력사 노동/인권 평가 점수 (100점 만점)", 0, 100, 58, key="in_labor_exp")
+            threshold_b = st.slider("분류 위험 임계값 (Threshold)", 0.1, 0.9, 0.5, 0.05, key="thresh_b_exp")
+            prob_risk = models["esg_model"].predict_proba([[in_env, in_labor]])[0][1]
+            is_risk = prob_risk >= threshold_b
+            st.markdown(f"**산출된 위험 확률:** `{prob_risk*100:.1f}%` (기준 임계값: `{threshold_b*100:.0f}%`)")
+            if is_risk:
+                st.error("🚨 판정 결과: **[위험] 공급망 실사 및 시정조치계획 제출 대상**")
+            else:
+                st.success("✅ 판정 결과: **[정상] 적격 공급사 (지속 모니터링)**")
+            st.caption(f"테스트 데이터 Confusion Matrix: TN={models['cm'][0,0]}, FP={models['cm'][0,1]}, FN={models['cm'][1,0]}, TP={models['cm'][1,1]}")
+
 # =============================================================================
 # TAB 1 [UI 순서 2번째]: 서류 교차 검증 & 사유서 진단 (2일차)
 # =============================================================================
@@ -1427,321 +1408,9 @@ with tabs[1]:
                     st.info("• 산업통상자원부 전략물자관리원 사전판정서 발급\n• 최종수요자(End-User) 확인서 확보")
 
 # =============================================================================
-# TAB 0 [UI 순서 1번째]: CBAM 배출량 산정 & 규제 스코어링 (1일차 & Round 5)
+# TAB 3: 블록 C 앱 배포 가이드 & Render 매뉴얼
 # =============================================================================
-with tabs[0]:
-    cbam_bg = f"background: linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(5, 150, 105, 0.75) 60%, rgba(15, 23, 42, 0.92) 100%), url('data:image/jpeg;base64,{b64_ship}') center/cover no-repeat;" if b64_ship else "background: linear-gradient(135deg, #064E3B 0%, #047857 100%);"
-    st.markdown(f"""
-    <div class="feature-banner" style="{cbam_bg}">
-        <div class="feature-tag" style="color: #34D399;">[1일차 실습] CARBON BORDER COMPLIANCE & NO-CODE AGENT</div>
-        <h3 class="feature-heading">1일차. EU CBAM 내재배출량 산정 & 노코드 리스크 스코어링</h3>
-        <p class="feature-desc">1일차 교안: EU 탄소국경조정제도(CBAM) Scope 1·2 배출량 산정 공식과 라운드5 노코드 에이전트의 규칙 기반 위험도 스코어링 파이프라인</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    cbam_tab1, cbam_tab2 = st.tabs(["🏭 CBAM 내재배출량 산정 계산기", "🏷️ 노코드 에이전트 리스크 스코어러 (Round 5)"])
-    
-    with cbam_tab1:
-        st.markdown("#### EU 탄소국경조정제도(CBAM) 품목별 내재배출량 계산기")
-        st.caption("Scope 1(직접 연료 연소)과 Scope 2(간접 전력 소비)를 합산해 제품 1톤당 내재배출량과 예상 인증서 비용을 산출합니다.")
-        
-        c_prod, c_vol, c_country = st.columns(3)
-        with c_prod:
-            prod_type = st.selectbox("대상 품목군", ["철강 (Steel)", "알루미늄 (Aluminum)", "시멘트 (Cement)", "비료 (Fertilizer)", "수소 (Hydrogen)"])
-        with c_vol:
-            prod_tons = st.number_input("생산/수출 물량 (톤, Ton)", min_value=1.0, value=200.0, step=10.0)
-        with c_country:
-            grid_factor = st.selectbox("생산국 전력망 배출계수 (tCO2e/MWh)", [
-                ("대한민국 (KR) - 0.4781", 0.4781),
-                ("독일 (DE) - 0.3850", 0.3850),
-                ("중국 (CN) - 0.6100", 0.6100),
-                ("인도 (IN) - 0.7200", 0.7200),
-                ("EU 평균 (EU) - 0.2500", 0.2500)
-            ], index=0)[1]
-            
-        c_s1, c_s2, c_cost = st.columns(3)
-        with c_s1:
-            fuel_direct = st.number_input("Scope 1 직접 배출량 (연료/공정, tCO2e)", min_value=0.0, value=120.0, step=5.0)
-        with c_s2:
-            mwh_used = st.number_input("생산 투입 전력량 (MWh)", min_value=0.0, value=350.0, step=10.0)
-        with c_cost:
-            ets_price = st.number_input("EU ETS 탄소 인증서 예상 가격 (€/tCO2e)", min_value=10.0, value=68.0, step=1.0)
-            
-        # 배출량 산출
-        scope2_indirect = mwh_used * grid_factor
-        total_emissions = fuel_direct + scope2_indirect
-        intensity = total_emissions / prod_tons
-        est_cost_eur = total_emissions * ets_price
-        
-        st.markdown("##### 📊 산정 결과 요약")
-        e1, e2, e3, e4 = st.columns(4)
-        e1.metric("총 내재배출량", f"{total_emissions:,.2f} tCO2e")
-        e2.metric("톤당 배출집약도", f"{intensity:.3f} tCO2e / t")
-        e3.metric("간접배출(Scope 2) 비중", f"{(scope2_indirect/total_emissions)*100:.1f}%")
-        e4.metric("예상 CBAM 인증서 비용", f"€ {est_cost_eur:,.0f}")
-        
-        # 시각화 (순수 HTML/CSS - Vega-Lite JS 청크 의존성 제거)
-        st.markdown("##### 📊 Scope 1 vs Scope 2 배출 비중")
-        s1_pct = (fuel_direct / max(total_emissions, 1e-6)) * 100
-        s2_pct = (scope2_indirect / max(total_emissions, 1e-6)) * 100
-        st.markdown(f"""
-        <div style="background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 10px;">
-            <div style="display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 6px; font-weight: 600;">
-                <span style="color: #DC2626;">🔥 Scope 1 (직접연료): {fuel_direct:,.1f} tCO2e ({s1_pct:.1f}%)</span>
-                <span style="color: #2563EB;">⚡ Scope 2 (간접전력): {scope2_indirect:,.1f} tCO2e ({s2_pct:.1f}%)</span>
-            </div>
-            <div style="display: flex; height: 20px; border-radius: 6px; overflow: hidden; background: #e2e8f0;">
-                <div style="width: {s1_pct:.1f}%; background-color: #DC2626; height: 100%;" title="Scope 1"></div>
-                <div style="width: {s2_pct:.1f}%; background-color: #2563EB; height: 100%;" title="Scope 2"></div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with cbam_tab2:
-        st.markdown("#### 라운드 5 노코드 에이전트: 리스크 키워드 가중합 스코어링")
-        st.caption("PDF 교안의 Orange3 Bag of Words + Feature Constructor 가중합 수식을 파이썬 알고리즘으로 완벽 구현했습니다.")
-        
-        df_kws = load_csv("risk_keywords.csv")
-        df_thresh = load_csv("risk_threshold.csv")
-        df_sample_docs = load_csv("sample_docs.csv")
-        
-        # 기본 텍스트 선택
-        sample_doc_list = ["사용자 직접 입력"]
-        if df_sample_docs is not None:
-            sample_doc_list = [f"샘플 문서 {i+1}" for i in range(len(df_sample_docs))] + ["사용자 직접 입력"]
-            
-        sel_doc_idx = st.selectbox("테스트용 문서 텍스트 선택", sample_doc_list)
-        
-        if sel_doc_idx != "사용자 직접 입력" and df_sample_docs is not None:
-            idx = int(sel_doc_idx.replace("샘플 문서 ", "")) - 1
-            default_text = df_sample_docs.iloc[idx]["텍스트"]
-        else:
-            default_text = "신고 물품의 내재배출량 산정 시 실측값 없음으로 인하여 기본값 적용되었으며, 검증 실패로 인해 과징금 부과 및 소급 추징 대상이 될 수 있음을 경고합니다. 서류 불일치 항목에 대한 소명 요구를 발송합니다."
-            
-        doc_text = st.text_area("분석 대상 텍스트", value=default_text, height=130)
-        
-        if st.button("⚡ 리스크 스코어 계산", key="btn_calc_score"):
-            score = 0
-            detected = []
-            
-            if df_kws is not None:
-                for _, row in df_kws.iterrows():
-                    kw = str(row["키워드"]).strip()
-                    wt = int(row["가중치"])
-                    count = len(re.findall(re.escape(kw), doc_text))
-                    if count > 0:
-                        kw_score = count * wt
-                        score += kw_score
-                        detected.append({"키워드": kw, "등장횟수": count, "가중치": wt, "기여점수": kw_score})
-                        
-            # 등급 판정
-            if score <= 5:
-                level = "초록 (안전 / 경미)"
-                badge_class = "badge-safe"
-                action_text = "정상 처리 가능. 통관 절차를 속행합니다."
-            elif score <= 15:
-                level = "노랑 (주의 / 보완 필요)"
-                badge_class = "badge-warn"
-                action_text = "주의 대상. 담당자 서류 재검토 및 소명 자료 사전 준비 권고."
-            else:
-                level = "빨강 (위험 / 심각 경고)"
-                badge_class = "badge-risk"
-                action_text = "고위험 경보! 즉시 출하 보류 및 법무/컴플라이언스팀 보고 필수."
-                
-            sc1, sc2 = st.columns([1, 2])
-            with sc1:
-                st.markdown(f"""
-                <div class="metric-card">
-                    <h4>최종 리스크 스코어</h4>
-                    <h1 style="color: #1E3A8A;">{score} 점</h1>
-                    <span class="{badge_class}">{level}</span>
-                </div>
-                """, unsafe_allow_html=True)
-                st.write(f"**대응 조치:** {action_text}")
-                
-            with sc2:
-                st.markdown("##### 📋 검출된 리스크 키워드 기여도")
-                if detected:
-                    det_df = pd.DataFrame(detected).sort_values("기여점수", ascending=False)
-                    st.dataframe(det_df, use_container_width=True, hide_index=True)
-                else:
-                    st.info("검출된 리스크 키워드가 없습니다. (점수: 0점)")
-
-# =============================================================================
-# TAB 4 [UI 순서 5번째]: RAG 규정 지식 검색 & 계약서 감사 (6일차)
-# =============================================================================
-with tabs[4]:
-    rag_bg = f"background: linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(13, 148, 136, 0.75) 60%, rgba(15, 23, 42, 0.92) 100%), url('data:image/jpeg;base64,{b64_globe}') center/cover no-repeat;" if b64_globe else "background: linear-gradient(135deg, #134E4A 0%, #0F766E 100%);"
-    st.markdown(f"""
-    <div class="feature-banner" style="{rag_bg}">
-        <div class="feature-tag" style="color: #2DD4BF;">[6일차 실습] INTELLIGENT REGULATORY AUDIT & RAG</div>
-        <h3 class="feature-heading">6일차. EU CBAM 규정집 & 계약서 독소조항 지능형 감사 엔진</h3>
-        <p class="feature-desc">6일차 교안: 통관규정집·CBAM 가이드라인 RAG 지능형 검색, 계약서 독소조항 자동 적출 및 바이어 공식 영문 답신 생성</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    rag_sub1, rag_sub2, rag_sub3 = st.tabs(["📖 규정집 RAG 지식 검색", "📑 신규 수출계약서 자동 감사", "✉️ 바이어 문의 메일 자동 분석"])
-    
-    knowledge_base = load_knowledge()
-    
-    # 5.1 RAG 지식 검색
-    with rag_sub1:
-        st.markdown("#### 수출입 통관 & CBAM 이행 규정집 지능형 검색 (RAG)")
-        st.caption("10대 표준 검증 질의(Q01~Q10)를 선택하거나 직접 질문을 입력하면 정확한 근거 조항을 발췌합니다.")
-        
-        df_q = load_csv("rag_questions.csv")
-        q_options = ["직접 질문 입력"]
-        if df_q is not None:
-            q_options = [f"[{r['질의번호']}] {r['질의']}" for _, r in df_q.iterrows()] + ["직접 질문 입력"]
-            
-        selected_q = st.selectbox("질문 선택 또는 직접 입력", q_options)
-        
-        if selected_q != "직접 질문 입력" and df_q is not None:
-            q_code = selected_q.split("] ")[0].replace("[", "")
-            match_row = df_q[df_q["질의번호"] == q_code].iloc[0]
-            current_query = match_row["질의"]
-            expected_clause = str(match_row["정답_조항번호"])
-        else:
-            current_query = "철강 제품의 CBAM 적용 여부와 근거 조항을 알려줘"
-            expected_clause = "14"
-            
-        user_query = st.text_input("질의 내용", value=current_query)
-        
-        if st.button("🔎 RAG 지식 검색 실행", key="btn_rag_search"):
-            # 간단 TF-IDF 코사인 유사도 검색
-            corpus = []
-            meta = []
-            for doc in knowledge_base:
-                content = doc.get("content", "")
-                # 조항 단위 분할
-                clauses = re.split(r'(제\s*\d+\s*조)', content)
-                if len(clauses) > 1:
-                    for i in range(1, len(clauses), 2):
-                        c_title = clauses[i]
-                        c_body = clauses[i+1] if i+1 < len(clauses) else ""
-                        full_clause = c_title + c_body
-                        corpus.append(full_clause)
-                        meta.append({"title": doc.get("title", ""), "clause": c_title, "source": doc.get("source", "")})
-                else:
-                    corpus.append(content[:2000])
-                    meta.append({"title": doc.get("title", ""), "clause": "전체", "source": doc.get("source", "")})
-                    
-            if corpus:
-                vec_rag = TfidfVectorizer().fit(corpus + [user_query])
-                corpus_v = vec_rag.transform(corpus)
-                q_v = vec_rag.transform([user_query])
-                sims = cosine_similarity(q_v, corpus_v)[0]
-                
-                top_indices = np.argsort(sims)[::-1][:3]
-                
-                st.markdown("##### 💡 RAG 검색 결과 (상위 매칭 조항)")
-                for rank, idx in enumerate(top_indices):
-                    sim_score = sims[idx]
-                    clause_info = meta[idx]
-                    clause_text = corpus[idx].strip()
-                    
-                    with st.expander(f"Top {rank+1}: [{clause_info['source']}] {clause_info['clause']} (유사도: {sim_score*100:.1f}%)", expanded=(rank==0)):
-                        st.markdown(f"**출처 문서:** `{clause_info['title']}`")
-                        st.markdown(f"**발췌 본문:**\n```text\n{clause_text[:800]}...\n```")
-                        if expected_clause != "None" and str(expected_clause) in clause_info['clause']:
-                            st.success(f"✅ 정답 조항(제{expected_clause}조)과 완벽 일치합니다!")
-            else:
-                st.warning("규정 지식 베이스가 비어 있습니다.")
-
-    # 5.2 신규 수출계약서 자동 감사
-    with rag_sub2:
-        st.markdown("#### 신규 수출 물품 매매계약서 (Nordic Metals) 자동 감사")
-        st.caption("5일차 실습 과제: 계약서 발췌본의 규정 위반 독소조항(배출량 정보 거부, 원산지 미정 등)을 실시간 적출합니다.")
-        
-        default_contract = """수출 물품 매매계약서 (발췌본)
-매도인: 한빛금속 주식회사 (대한민국)
-매수인: Nordic Metals GmbH (독일)
-품목: Aluminum Extruded Profile 6063-T5 (HS Code: 7604.29) / 수량: 200 BUNDLES / USD 185,000
-
-제1조 (계약 물품) 원산지는 대한민국 또는 중국 중 선적 시점에 매도인이 정한다.
-제2조 (인도 조건) 인도 조건은 FOB Incheon으로 한다.
-제3조 (선적 서류) 상업송장과 패킹리스트의 수량, 금액, 중량 차이가 5퍼센트 이내인 경우에는 서류 불일치로 보지 않는다.
-제4조 (배출량 정보) 매도인은 본 계약 물품의 내재 배출량 정보를 매수인에게 제공할 의무를 지지 않는다.
-제5조 (서류 정정) 서류 불일치가 발견되면 매도인은 수출신고 수리일부터 90일 이내에 정정할 수 있다."""
-        
-        contract_text = st.text_area("계약서 원문", value=default_contract, height=180)
-        
-        if st.button("📑 계약서 컴플라이언스 감사 실행", key="btn_audit_contract"):
-            st.markdown("##### 🚨 계약서 위험 조항 감사 리포트")
-            
-            # Rule 1: 제4조 배출량
-            if "배출량 정보" in contract_text and "의무를 지지 않는다" in contract_text:
-                st.error("""
-                **[치명적 위험] 제4조 (배출량 정보 미제공 조항):**
-                - **관련 규정:** EU CBAM 이행규정 제15조 및 통관규정 제24조
-                - **진단:** EU 수입자(Nordic Metals)는 CBAM 분기별 보고서에 제품 실측 배출량을 신고해야 할 법적 의무가 있습니다. 매도인이 배출량 제공을 거부할 경우, EU 세관 통관 거부 및 과징금 분쟁이 발생합니다.
-                - **수정 권고:** '매도인은 CBAM 표준 산정 가이드라인에 부합하는 실측 내재배출량 확인서를 선적 후 15일 이내에 제공한다'로 수정 필수.
-                """)
-                
-            # Rule 2: 제1조 원산지
-            if "선적 시점에 매도인이 정한다" in contract_text or "중국" in contract_text:
-                st.warning("""
-                **[주의/고위험] 제1조 (원산지 미확정 조항):**
-                - **관련 규정:** 통관규정 제23조 및 FTA 원산지 규정
-                - **진단:** 한-EU FTA 특혜관세(0%) 적용을 위해서는 선적 전 한국산 원산지 판정이 확정되어야 합니다. 중국산 혼용 시 일반관세(6.0%)가 부과되며 원산지증명서 불일치로 통관이 지연됩니다.
-                - **수정 권고:** 원산지를 '대한민국(Republic of Korea)'으로 특정하고 한-EU FTA 원산지증명서 발급 조건을 명시할 것.
-                """)
-                
-            # Rule 3: 제3조 오차
-            if "5퍼센트" in contract_text or "5%" in contract_text:
-                st.info("""
-                **[양호] 제3조 (5% 허용 오차 조항):**
-                - **관련 규정:** 통관규정집 제10조
-                - **진단:** 순중량 및 수량 차이 5% 이내 허용 조항은 규정집 상의 표준 허용공차 범위에 부합합니다.
-                """)
-
-    # 5.3 바이어 문의 메일 분석
-    with rag_sub3:
-        st.markdown("#### 바이어 문의 메일 분석 및 공식 답신 초안 자동 생성")
-        st.caption("독일 바이어(Nordic Metals Anna Weber)의 서명 전 3대 확인 요청에 대해 규정 근거를 포함한 공식 영문 답신을 작성합니다.")
-        
-        default_buyer_mail = """From: Anna Weber <anna.weber@nordicmetals.example>
-To: export@hanbit-metal.example
-Subject: Questions before signing - aluminium profile contract (200 bundles)
-
-Dear Sales Team,
-Before we sign, our team has three questions:
-1) Origin: Could you confirm that we may receive either Korean or Chinese origin material, depending on availability at shipment?
-2) Tolerance: Our finance team prefers a 3% difference between invoice and packing list without treating it as discrepancy. Is this acceptable?
-3) Shipping terms: Please confirm FOB Incheon and whether CBAM emissions data will be included."""
-
-        st.text_area("수신된 바이어 메일 원문", value=default_buyer_mail, height=140)
-        
-        if st.button("✉️ AI 법무/무역 답신 이메일 생성", key="btn_reply_mail"):
-            reply_draft = """Subject: Re: Questions before signing - aluminium profile contract (200 bundles)
-
-Dear Ms. Anna Weber,
-
-Thank you for your inquiry. Regarding your three questions before contract signing, please find our official positions below:
-
-1. Origin Clause (Origin Determination):
-In accordance with EU Customs Regulation and EU-Korea FTA compliance, the origin cannot be left undecided at shipment. To guarantee preferential tariff treatment (0%) and compliant CBAM documentation, the origin will be strictly fixed as "Republic of Korea (KR)".
-
-2. Document Tolerance (3% Discrepancy):
-Yes, a 3% tolerance between the commercial invoice and packing list is fully acceptable under our Customs Guidelines Article 10 (which permits tolerances within 5%).
-
-3. CBAM Embedded Emissions Data:
-We confirm FOB Incheon terms. In addition, Section 4 will be revised so that Hanbit Metal will provide fully verified Scope 1 and Scope 2 embedded emissions reports (tCO2e/ton) prior to customs clearance.
-
-We have attached the updated contract amendment for your countersignature.
-
-Sincerely,
-Export Compliance Team
-Hanbit Metal Co., Ltd.
-"""
-            st.markdown("##### 📝 생성된 공식 답신 이메일 (영문)")
-            st.code(reply_draft, language="markdown")
-            st.success("✅ 바이어 규정 리스크 해소 및 협정관세 보호 답신이 작성되었습니다.")
-
-# =============================================================================
-# TAB 6: Render 배포 & 시스템 가이드
-# =============================================================================
-with tabs[5]:
+with tabs[3]:
     st.subheader("🚀 블록 C 앱 배포 가이드 & Render.com 클라우드 배포 매뉴얼")
     st.caption("Windows 무설치 exe 패키징부터 PaaS(Render.com) 무료 배포, 학생 실습용 3단계 프롬프트와 버전 트러블슈팅 완벽 가이드")
     

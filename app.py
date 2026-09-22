@@ -232,6 +232,103 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# -----------------------------------------------------------------------------
+# 2. 데이터 경로 및 헬퍼 함수
+# -----------------------------------------------------------------------------
+def get_data_path(filename):
+    """우선 data/ 폴더에서 찾고, 없으면 전체 경로에서 탐색"""
+    direct_path = os.path.join(DATA_DIR, filename)
+    if os.path.exists(direct_path):
+        return direct_path
+    for root_dir, _, files in os.walk(BASE_DIR):
+        if filename in files:
+            return os.path.join(root_dir, filename)
+    return None
+
+@st.cache_data
+def load_csv(filename, encoding="utf-8-sig"):
+    path = get_data_path(filename)
+    if path and os.path.exists(path):
+        try:
+            return pd.read_csv(path, encoding=encoding)
+        except Exception:
+            return pd.read_csv(path, encoding="cp949")
+    return None
+
+@st.cache_data
+def load_excel(filename):
+    path = get_data_path(filename)
+    if path and os.path.exists(path):
+        return pd.read_excel(path)
+    return None
+
+@st.cache_data
+def load_knowledge():
+    path = get_data_path("knowledge.json")
+    if path and os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+# -----------------------------------------------------------------------------
+# 3. 모델 캐싱 (블록 A & B)
+# -----------------------------------------------------------------------------
+@st.cache_resource
+def train_prediction_models():
+    df = load_csv("master_dataset.csv")
+    if df is None:
+        df = pd.DataFrame({
+            "상품영문명": ["Hot Rolled Steel Sheet", "Aluminum Extruded Profile", "Urea Fertilizer"],
+            "사양": ["Thickness 2.0mm Coil", "6063-T5 Alloy", "46% Nitrogen Granular"],
+            "HS코드_정답": [7208.39, 7604.29, 3102.10],
+            "협력사_환경위반건수": [0, 2, 5],
+            "협력사_노동평가점수": [85, 60, 40],
+            "리스크_정답": ["정상", "위험", "위험"]
+        })
+    
+    # 1. HS Code 추천 모델 (블록 A)
+    df["상품설명"] = df["상품영문명"].astype(str) + " " + df["사양"].astype(str)
+    tfidf = TfidfVectorizer(max_features=500, stop_words="english")
+    X_text = tfidf.fit_transform(df["상품설명"])
+    y_hs = df["HS코드_정답"].astype(str)
+    
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_text, y_hs, test_size=0.25, random_state=42, stratify=y_hs if len(y_hs.unique()) > 1 else None
+    )
+    hs_model = RandomForestClassifier(n_estimators=100, random_state=42)
+    hs_model.fit(X_train, y_train)
+    hs_acc = accuracy_score(y_test, hs_model.predict(X_test))
+    
+    # 2. ESG 위험도 모델 (블록 B)
+    X_esg = df[["협력사_환경위반건수", "협력사_노동평가점수"]]
+    y_esg = (df["리스크_정답"].astype(str).str.strip() == "위험").astype(int)
+    
+    X_e_train, X_e_test, y_e_train, y_e_test = train_test_split(
+        X_esg, y_esg, test_size=0.25, random_state=42
+    )
+    esg_model = LogisticRegression(random_state=42)
+    esg_model.fit(X_e_train, y_e_train)
+    
+    y_e_pred = esg_model.predict(X_e_test)
+    esg_acc = accuracy_score(y_e_test, y_e_pred)
+    esg_prec = precision_score(y_e_test, y_e_pred, zero_division=0)
+    esg_rec = recall_score(y_e_test, y_e_pred, zero_division=0)
+    cm = confusion_matrix(y_e_test, y_e_pred)
+    
+    return {
+        "df_master": df,
+        "tfidf": tfidf,
+        "hs_model": hs_model,
+        "hs_acc": hs_acc,
+        "esg_model": esg_model,
+        "esg_acc": esg_acc,
+        "esg_prec": esg_prec,
+        "esg_rec": esg_rec,
+        "cm": cm
+    }
+
+WATCHLIST_HS_CODES = ["7208.10", "7208.39", "7604.21", "7604.29", "2804.10", "2716.00"]
+
 
 
 # -----------------------------------------------------------------------------

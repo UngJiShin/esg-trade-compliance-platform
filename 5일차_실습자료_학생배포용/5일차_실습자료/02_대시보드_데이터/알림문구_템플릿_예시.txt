@@ -1,0 +1,19 @@
+Subject: [Risk Alert] {risk_type} detected - {doc_id}
+
+Dear {manager_name},
+
+A risk item has been detected in the export compliance dashboard.
+
+- Document No.: {doc_id}
+- Item: {item_name} (HS Code {hs_code})
+- Risk type: {risk_type}
+- Risk probability: {probability}
+- Cross-check result: {check_detail}
+- Reason for alert: {reason}
+
+Please review the source documents and confirm the required correction by {due_date}.
+
+Best regards,
+Export Compliance Dashboard (automated draft)
+
+* This is a training sample. Review before sending.

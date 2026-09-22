@@ -1,0 +1,6 @@
+﻿리스크유형,담당자,이메일,부서,비고
+서류불일치,김서류,docs.manager@example.com,수출서류팀,교육용 가상 인물·주소 (example.com은 실제로 발송되지 않는 예시 도메인)
+원산지,박원산,origin.manager@example.com,원산지관리팀,교육용 가상 인물·주소 (example.com은 실제로 발송되지 않는 예시 도메인)
+HS Code,이품목,hs.manager@example.com,품목분류팀,교육용 가상 인물·주소 (example.com은 실제로 발송되지 않는 예시 도메인)
+ESG,최에스지,esg.manager@example.com,ESG전략팀,교육용 가상 인물·주소 (example.com은 실제로 발송되지 않는 예시 도메인)
+배출량,정탄소,carbon.manager@example.com,탄소관리팀,교육용 가상 인물·주소 (example.com은 실제로 발송되지 않는 예시 도메인)

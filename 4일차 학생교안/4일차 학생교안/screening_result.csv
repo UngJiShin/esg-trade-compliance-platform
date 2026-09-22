@@ -1,0 +1,9 @@
+﻿선적ID,상품영문명,사양,협력사_환경위반건수,협력사_노동평가점수,상품설명,예측_HS코드,위험_확률,판정,워치리스트_관찰대상
+SHIP-02,Recycled Aluminum Wire,"recycled aluminum, drawn wire, export packaging standard",5,42,"Recycled Aluminum Wire recycled aluminum, drawn wire, export packaging standard",760511,0.9883803573972727,위험,-
+SHIP-04,Bulk Urea Fertilizer,"46% nitrogen content, bulk bag packaging, export packaging standard",4,48,"Bulk Urea Fertilizer 46% nitrogen content, bulk bag packaging, export packaging standard",310210,0.9582103613249046,위험,-
+SHIP-08,All-Season Radial Tire,"synthetic rubber compound, DOT certified, export packaging standard",3,55,"All-Season Radial Tire synthetic rubber compound, DOT certified, export packaging standard",401110,0.8483169742558477,위험,-
+SHIP-06,Welded Steel Pipe,"carbon steel, seam-welded, export packaging standard",2,65,"Welded Steel Pipe carbon steel, seam-welded, export packaging standard",730630,0.5026215553356805,위험,-
+SHIP-05,Leather Oxford Shoe,"genuine leather upper, hand-stitched, export packaging standard",1,76,"Leather Oxford Shoe genuine leather upper, hand-stitched, export packaging standard",640351,0.14179087149366082,정상,-
+SHIP-03,LED Panel Light,"aluminum housing, energy-efficient, export packaging standard",0,85,"LED Panel Light aluminum housing, energy-efficient, export packaging standard",940540,0.03193910762478677,정상,-
+SHIP-01,Cotton Basic T-Shirt,"100% cotton, round neck, export packaging standard",0,88,"Cotton Basic T-Shirt 100% cotton, round neck, export packaging standard",610910,0.02385816709029285,정상,-
+SHIP-07,Wooden Office Desk,"solid oak wood, varnished finish, export packaging standard",0,91,"Wooden Office Desk solid oak wood, varnished finish, export packaging standard",940360,0.017784231448003132,정상,-

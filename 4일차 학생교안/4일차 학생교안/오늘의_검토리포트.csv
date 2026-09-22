@@ -1,0 +1,5 @@
+﻿문서번호,상품영문명,사양,협력사_환경위반건수,협력사_노동평가점수,상품설명,예측_HS코드,위험_확률,워치리스트_관찰대상,판정
+SHIP-02,Recycled Aluminum Wire,"recycled aluminum, drawn wire, export packaging standard",5,42,"Recycled Aluminum Wire recycled aluminum, drawn wire, export packaging standard",760511,0.9871336630780686,-,위험
+SHIP-04,Bulk Urea Fertilizer,"46% nitrogen content, bulk bag packaging, export packaging standard",4,48,"Bulk Urea Fertilizer 46% nitrogen content, bulk bag packaging, export packaging standard",310210,0.9570618689373742,-,위험
+SHIP-08,All-Season Radial Tire,"synthetic rubber compound, DOT certified, export packaging standard",3,55,"All-Season Radial Tire synthetic rubber compound, DOT certified, export packaging standard",401110,0.8542898590990351,-,위험
+SHIP-06,Welded Steel Pipe,"carbon steel, seam-welded, export packaging standard",2,65,"Welded Steel Pipe carbon steel, seam-welded, export packaging standard",730630,0.5337175184349853,-,위험

@@ -1,0 +1,25 @@
+# Build & Executables
+BlockC/
+*.exe
+*.dll
+*.so
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+.pytest_cache/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

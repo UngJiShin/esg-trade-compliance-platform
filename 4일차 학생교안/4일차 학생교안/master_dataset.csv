@@ -1,0 +1,251 @@
+﻿상품ID,상품영문명,사양,HS코드_정답,협력사_환경위반건수,협력사_노동평가점수,리스크_정답
+P1142,Genuine Leather Loafer #18,"genuine leather upper, lace-up closure, size 12, export packaging standard",640351,0,69,위험
+P1006,Cotton Crew Neck Tee #07,"100% cotton, knitted, size 8, export packaging standard",610910,4,76,위험
+P1097,Plastic Bin #23,"polypropylene, reusable, size 22, export packaging standard",392310,0,57,위험
+P1060,Aluminum Alloy Wire #11,"6201 aluminum alloy, drawn wire, size 34, export packaging standard",760511,4,55,위험
+P1112,LED Strip Lighting #13,"PC lens cover, energy-efficient, size 25, export packaging standard",940540,0,82,정상
+P1181,Wooden Office Desk #07,"birch plywood, flat-pack assembly, size 22, export packaging standard",940360,3,63,위험
+P1197,Wooden Office Desk #23,"birch plywood, flat-pack assembly, size 10, export packaging standard",940360,0,74,정상
+P1184,Oak Wood Cabinet #10,"birch plywood, reinforced joints, size 36, export packaging standard",940360,4,49,위험
+P1009,Cotton T-Shirt #10,"100% cotton, pre-shrunk, size 31, export packaging standard",610910,4,57,위험
+P1104,LED Ceiling Lamp #05,"polycarbonate diffuser, dimmable, size 6, export packaging standard",940540,5,46,위험
+P1200,Urea Fertilizer #01,"coated urea, bulk bag packaging, size 25, export packaging standard",310210,5,44,위험
+P1216,Nitrogen Fertilizer #17,"coated urea, bulk bag packaging, size 10, export packaging standard",310210,5,49,위험
+P1236,All-Season Car Tire #12,"reinforced sidewall, DOT certified, size 30, export packaging standard",401110,2,72,정상
+P1240,Passenger Car Tire #16,"steel-belted radial, wet grip optimized, size 23, export packaging standard",401110,4,52,위험
+P1067,Bare Aluminum Conductor #18,"1350 aluminum, high conductivity, size 39, export packaging standard",760511,2,65,정상
+P1224,Nitrogen Fertilizer #25,"granular form, bulk bag packaging, size 9, export packaging standard",310210,0,79,위험
+P1194,Solid Wood Bookshelf #20,"birch plywood, reinforced joints, size 29, export packaging standard",940360,2,74,정상
+P1015,Organic Cotton Shirt #16,"organic cotton, short sleeve, size 18, export packaging standard",610910,2,73,정상
+P1177,Wooden Office Desk #03,"solid oak wood, scratch-resistant, size 8, export packaging standard",940360,3,57,위험
+P1024,Cotton T-Shirt #25,"100% cotton, round neck, size 45, export packaging standard",610910,0,54,위험
+P1247,Rubber Vehicle Tire #23,"synthetic rubber compound, wet grip optimized, size 23, export packaging standard",401110,0,56,위험
+P1019,Cotton T-Shirt #20,"combed cotton, knitted, size 35, export packaging standard",610910,2,57,위험
+P1114,LED Strip Lighting #15,"polycarbonate diffuser, dimmable, size 37, export packaging standard",940540,5,30,위험
+P1068,Aluminum Wire #19,"pure aluminum, high conductivity, size 24, export packaging standard",760511,0,95,정상
+P1176,Wooden Office Desk #02,"solid oak wood, reinforced joints, size 36, export packaging standard",940360,5,65,위험
+P1045,Steel Pipe Fitting #21,"carbon steel, circular cross-section, size 14, export packaging standard",730630,0,82,정상
+P1055,Aluminum Alloy Wire #06,"1350 aluminum, coil wound, size 14, export packaging standard",760511,2,88,정상
+P1010,Cotton Crew Neck Tee #11,"combed cotton, pre-shrunk, size 19, export packaging standard",610910,5,55,위험
+P1030,Carbon Steel Tube #06,"carbon steel, circular cross-section, size 47, export packaging standard",730630,2,66,정상
+P1120,LED Ceiling Lamp #21,"PC lens cover, flicker-free, size 7, export packaging standard",940540,3,51,위험
+P1201,Urea Fertilizer #02,"granular form, low biuret content, size 15, export packaging standard",310210,5,47,위험
+P1033,Carbon Steel Tube #09,"galvanized steel, circular cross-section, size 18, export packaging standard",730630,4,52,위험
+P1141,Leather Dress Shoe #17,"synthetic leather sole, lace-up closure, size 1, export packaging standard",640351,5,30,위험
+P1219,Prilled Urea #20,"coated urea, low biuret content, size 41, export packaging standard",310210,1,70,정상
+P1025,Carbon Steel Tube #01,"alloy steel, corrosion resistant, size 27, export packaging standard",730630,1,51,위험
+P1111,LED Strip Lighting #12,"PC lens cover, flicker-free, size 36, export packaging standard",940540,3,47,위험
+P1018,Cotton Crew Neck Tee #19,"cotton-polyester blend, round neck, size 40, export packaging standard",610910,1,64,정상
+P1196,Oak Wood Cabinet #22,"solid oak wood, varnished finish, size 8, export packaging standard",940360,1,45,위험
+P1180,Wooden Office Desk #06,"FSC-certified wood, flat-pack assembly, size 44, export packaging standard",940360,2,50,위험
+P1159,FR4 Circuit Board #10,"aluminum-based PCB, gold-plated contacts, size 7, export packaging standard",853400,0,47,위험
+P1118,LED Downlight #19,"aluminum housing, flicker-free, size 11, export packaging standard",940540,4,59,위험
+P1096,PP Packaging Box #22,"polypropylene, stackable, size 7, export packaging standard",392310,4,67,위험
+P1108,LED Downlight #09,"die-cast aluminum, flicker-free, size 35, export packaging standard",940540,3,59,위험
+P1185,Wooden Office Desk #11,"solid oak wood, varnished finish, size 46, export packaging standard",940360,3,54,위험
+P1222,Granular Urea #23,"granular form, moisture-resistant packaging, size 46, export packaging standard",310210,3,44,위험
+P1016,Cotton Jersey Top #17,"combed cotton, short sleeve, size 12, export packaging standard",610910,4,56,위험
+P1146,Leather Dress Shoe #22,"cowhide leather, cushioned insole, size 44, export packaging standard",640351,5,51,위험
+P1069,Aluminum Alloy Wire #20,"6201 aluminum alloy, high conductivity, size 37, export packaging standard",760511,1,68,정상
+P1173,Rigid PCB Assembly #24,"aluminum-based PCB, 4-layer stack-up, size 4, export packaging standard",853400,2,51,위험
+P1038,Galvanized Steel Pipe #14,"galvanized steel, threaded end, size 46, export packaging standard",730630,1,63,정상
+P1132,Leather Oxford Shoe #08,"synthetic leather sole, cushioned insole, size 49, export packaging standard",640351,4,65,위험
+P1225,All-Season Car Tire #01,"reinforced sidewall, low rolling resistance, size 15, export packaging standard",401110,5,41,위험
+P1238,Rubber Vehicle Tire #14,"steel-belted radial, DOT certified, size 12, export packaging standard",401110,2,69,정상
+P1119,LED Strip Lighting #20,"polycarbonate diffuser, IP65 rated, size 46, export packaging standard",940540,5,33,위험
+P1136,Leather Ankle Boot #12,"synthetic leather sole, lace-up closure, size 37, export packaging standard",640351,3,37,정상
+P1066,Bare Aluminum Conductor #17,"1350 aluminum, drawn wire, size 7, export packaging standard",760511,4,52,위험
+P1217,Prilled Urea #18,"granular form, slow-release coating, size 42, export packaging standard",310210,0,80,정상
+P1154,FR4 Circuit Board #05,"multilayer copper, surface mount, size 15, export packaging standard",853400,5,55,위험
+P1168,Printed Circuit Board #19,"FR4 glass epoxy, ENIG finish, size 3, export packaging standard",853400,1,72,위험
+P1229,Radial Tire #05,"steel-belted radial, all-season tread, size 41, export packaging standard",401110,0,83,정상
+P1233,Radial Tire #09,"natural rubber blend, all-season tread, size 48, export packaging standard",401110,3,31,위험
+P1156,FR4 Circuit Board #07,"aluminum-based PCB, ENIG finish, size 22, export packaging standard",853400,5,60,위험
+P1117,LED Ceiling Lamp #18,"PC lens cover, flicker-free, size 8, export packaging standard",940540,4,47,위험
+P1084,PET Storage Case #10,"food-grade plastic, airtight lid, size 39, export packaging standard",392310,3,57,위험
+P1125,Leather Oxford Shoe #01,"full-grain leather, lace-up closure, size 31, export packaging standard",640351,0,62,정상
+P1167,FR4 Circuit Board #18,"FR4 glass epoxy, 4-layer stack-up, size 24, export packaging standard",853400,0,61,정상
+P1245,Rubber Vehicle Tire #21,"synthetic rubber compound, low rolling resistance, size 20, export packaging standard",401110,3,49,위험
+P1109,LED Strip Lighting #10,"aluminum housing, IP65 rated, size 17, export packaging standard",940540,3,43,위험
+P1172,Rigid PCB Assembly #23,"aluminum-based PCB, gold-plated contacts, size 13, export packaging standard",853400,1,56,위험
+P1234,All-Season Car Tire #10,"natural rubber blend, wet grip optimized, size 13, export packaging standard",401110,1,81,정상
+P1073,Aluminum Alloy Wire #24,"6201 aluminum alloy, drawn wire, size 25, export packaging standard",760511,5,45,위험
+P1158,Printed Circuit Board #09,"multilayer copper, gold-plated contacts, size 5, export packaging standard",853400,2,57,위험
+P1115,LED Panel Light #16,"polycarbonate diffuser, energy-efficient, size 35, export packaging standard",940540,0,66,정상
+P1075,Plastic Storage Container #01,"food-grade plastic, reusable, size 9, export packaging standard",392310,4,69,위험
+P1237,Radial Tire #13,"steel-belted radial, low rolling resistance, size 42, export packaging standard",401110,3,65,위험
+P1082,PET Storage Case #08,"high-density polyethylene, transparent, size 16, export packaging standard",392310,1,73,정상
+P1029,Welded Steel Pipe #05,"galvanized steel, threaded end, size 49, export packaging standard",730630,3,40,위험
+P1126,Leather Ankle Boot #02,"cowhide leather, lace-up closure, size 42, export packaging standard",640351,1,72,정상
+P1079,PET Storage Case #05,"polypropylene, transparent, size 7, export packaging standard",392310,5,52,위험
+P1086,PET Storage Case #12,"PET resin, stackable, size 6, export packaging standard",392310,2,57,정상
+P1005,Cotton Jersey Top #06,"cotton-polyester blend, pre-shrunk, size 34, export packaging standard",610910,4,46,위험
+P1056,Aluminum Wire Rod #07,"6201 aluminum alloy, coil wound, size 41, export packaging standard",760511,5,30,위험
+P1186,Solid Wood Bookshelf #12,"birch plywood, varnished finish, size 20, export packaging standard",940360,5,48,위험
+P1231,Radial Tire #07,"reinforced sidewall, DOT certified, size 37, export packaging standard",401110,1,56,위험
+P1170,Multilayer PCB #21,"FR4 glass epoxy, surface mount, size 28, export packaging standard",853400,1,46,정상
+P1065,Aluminum Wire #16,"pure aluminum, coil wound, size 16, export packaging standard",760511,4,54,위험
+P1140,Leather Dress Shoe #16,"cowhide leather, lace-up closure, size 3, export packaging standard",640351,2,65,정상
+P1124,LED Downlight #25,"aluminum housing, IP65 rated, size 42, export packaging standard",940540,5,42,위험
+P1213,Urea Fertilizer #14,"46% nitrogen content, slow-release coating, size 41, export packaging standard",310210,5,48,위험
+P1148,Leather Ankle Boot #24,"cowhide leather, cushioned insole, size 7, export packaging standard",640351,0,54,위험
+P1031,Carbon Steel Tube #07,"galvanized steel, seam-welded, size 33, export packaging standard",730630,2,67,정상
+P1012,Cotton Crew Neck Tee #13,"organic cotton, round neck, size 39, export packaging standard",610910,3,49,위험
+P1035,Steel Pipe Fitting #11,"alloy steel, threaded end, size 16, export packaging standard",730630,0,69,정상
+P1028,Welded Steel Pipe #04,"galvanized steel, corrosion resistant, size 8, export packaging standard",730630,4,36,위험
+P1042,Welded Steel Pipe #18,"alloy steel, threaded end, size 12, export packaging standard",730630,0,95,정상
+P1218,Nitrogen Fertilizer #19,"46% nitrogen content, low biuret content, size 17, export packaging standard",310210,0,100,정상
+P1022,Cotton Crew Neck Tee #23,"combed cotton, round neck, size 45, export packaging standard",610910,2,58,위험
+P1093,PET Storage Case #19,"polypropylene, stackable, size 8, export packaging standard",392310,0,51,위험
+P1212,Granular Urea #13,"coated urea, low biuret content, size 22, export packaging standard",310210,2,63,정상
+P1101,LED Panel Light #02,"die-cast aluminum, IP65 rated, size 13, export packaging standard",940540,3,60,위험
+P1051,Aluminum Wire #02,"pure aluminum, coil wound, size 9, export packaging standard",760511,3,46,위험
+P1095,Plastic Storage Container #21,"polypropylene, reusable, size 42, export packaging standard",392310,4,66,정상
+P1143,Leather Oxford Shoe #19,"full-grain leather, cushioned insole, size 13, export packaging standard",640351,4,56,위험
+P1199,Wooden Dining Table #25,"engineered wood, varnished finish, size 7, export packaging standard",940360,0,62,정상
+P1076,PET Storage Case #02,"food-grade plastic, reusable, size 47, export packaging standard",392310,0,60,정상
+P1041,Carbon Steel Tube #17,"galvanized steel, seam-welded, size 44, export packaging standard",730630,0,93,정상
+P1113,LED Panel Light #14,"PC lens cover, dimmable, size 4, export packaging standard",940540,1,74,정상
+P1152,FR4 Circuit Board #03,"multilayer copper, 4-layer stack-up, size 14, export packaging standard",853400,2,42,위험
+P1078,PP Packaging Box #04,"high-density polyethylene, transparent, size 26, export packaging standard",392310,4,55,위험
+P1147,Leather Dress Shoe #23,"cowhide leather, cushioned insole, size 21, export packaging standard",640351,4,75,위험
+P1026,Carbon Steel Tube #02,"stainless steel, corrosion resistant, size 22, export packaging standard",730630,1,88,정상
+P1241,Passenger Car Tire #17,"steel-belted radial, low rolling resistance, size 23, export packaging standard",401110,3,55,위험
+P1164,Printed Circuit Board #15,"FR4 glass epoxy, surface mount, size 25, export packaging standard",853400,1,50,위험
+P1243,Passenger Car Tire #19,"steel-belted radial, DOT certified, size 7, export packaging standard",401110,5,44,위험
+P1137,Genuine Leather Loafer #13,"synthetic leather sole, lace-up closure, size 48, export packaging standard",640351,2,72,정상
+P1000,Cotton T-Shirt #01,"combed cotton, knitted, size 22, export packaging standard",610910,2,74,정상
+P1002,Cotton Jersey Top #03,"cotton-polyester blend, knitted, size 19, export packaging standard",610910,1,69,정상
+P1077,PP Packaging Box #03,"PET resin, transparent, size 9, export packaging standard",392310,1,82,정상
+P1046,Carbon Steel Tube #22,"stainless steel, threaded end, size 35, export packaging standard",730630,4,40,위험
+P1100,LED Downlight #01,"aluminum housing, energy-efficient, size 5, export packaging standard",940540,4,38,위험
+P1127,Genuine Leather Loafer #03,"cowhide leather, cushioned insole, size 22, export packaging standard",640351,5,35,위험
+P1150,Printed Circuit Board #01,"FR4 glass epoxy, gold-plated contacts, size 10, export packaging standard",853400,3,46,위험
+P1248,Passenger Car Tire #24,"steel-belted radial, wet grip optimized, size 28, export packaging standard",401110,1,78,정상
+P1090,Plastic Storage Container #16,"polypropylene, transparent, size 49, export packaging standard",392310,0,76,정상
+P1085,PP Packaging Box #11,"polypropylene, transparent, size 42, export packaging standard",392310,5,51,위험
+P1175,Wooden Dining Table #01,"FSC-certified wood, flat-pack assembly, size 43, export packaging standard",940360,0,53,정상
+P1195,Solid Wood Bookshelf #21,"birch plywood, varnished finish, size 4, export packaging standard",940360,1,69,정상
+P1098,Plastic Storage Container #24,"high-density polyethylene, stackable, size 35, export packaging standard",392310,3,40,정상
+P1036,Welded Steel Pipe #12,"carbon steel, circular cross-section, size 28, export packaging standard",730630,3,47,위험
+P1061,Aluminum Alloy Wire #12,"6201 aluminum alloy, coil wound, size 39, export packaging standard",760511,5,48,위험
+P1162,Rigid PCB Assembly #13,"FR4 glass epoxy, 4-layer stack-up, size 35, export packaging standard",853400,2,69,정상
+P1139,Leather Ankle Boot #15,"synthetic leather sole, lace-up closure, size 14, export packaging standard",640351,5,54,정상
+P1011,Cotton Crew Neck Tee #12,"combed cotton, short sleeve, size 40, export packaging standard",610910,0,78,정상
+P1244,All-Season Car Tire #20,"synthetic rubber compound, all-season tread, size 20, export packaging standard",401110,2,52,위험
+P1198,Solid Wood Bookshelf #24,"engineered wood, varnished finish, size 10, export packaging standard",940360,5,40,위험
+P1027,Steel Pipe Fitting #03,"stainless steel, circular cross-section, size 38, export packaging standard",730630,2,65,정상
+P1155,Printed Circuit Board #06,"copper-clad laminate, 4-layer stack-up, size 1, export packaging standard",853400,1,74,정상
+P1004,Cotton Jersey Top #05,"combed cotton, round neck, size 31, export packaging standard",610910,0,66,정상
+P1122,LED Downlight #23,"aluminum housing, dimmable, size 45, export packaging standard",940540,5,30,위험
+P1032,Steel Pipe Fitting #08,"galvanized steel, threaded end, size 14, export packaging standard",730630,5,40,위험
+P1144,Leather Oxford Shoe #20,"full-grain leather, cushioned insole, size 33, export packaging standard",640351,1,40,위험
+P1178,Wooden Office Desk #04,"birch plywood, flat-pack assembly, size 9, export packaging standard",940360,4,35,정상
+P1138,Genuine Leather Loafer #14,"full-grain leather, rubber outsole, size 21, export packaging standard",640351,0,90,정상
+P1062,Aluminum Wire Rod #13,"pure aluminum, non-insulated, size 13, export packaging standard",760511,3,61,정상
+P1135,Leather Oxford Shoe #11,"full-grain leather, cushioned insole, size 21, export packaging standard",640351,5,30,위험
+P1128,Genuine Leather Loafer #04,"cowhide leather, cushioned insole, size 25, export packaging standard",640351,5,34,위험
+P1226,Passenger Car Tire #02,"steel-belted radial, low rolling resistance, size 47, export packaging standard",401110,4,66,위험
+P1205,Granular Urea #06,"granular form, bulk bag packaging, size 26, export packaging standard",310210,4,56,위험
+P1070,Aluminum Wire #21,"aluminum alloy, coil wound, size 47, export packaging standard",760511,4,71,위험
+P1192,Wooden Dining Table #18,"solid oak wood, varnished finish, size 37, export packaging standard",940360,2,85,정상
+P1064,Aluminum Wire #15,"pure aluminum, high conductivity, size 46, export packaging standard",760511,4,62,위험
+P1044,Galvanized Steel Pipe #20,"alloy steel, seam-welded, size 48, export packaging standard",730630,2,61,위험
+P1165,Multilayer PCB #16,"multilayer copper, 4-layer stack-up, size 23, export packaging standard",853400,5,43,위험
+P1040,Welded Steel Pipe #16,"alloy steel, circular cross-section, size 26, export packaging standard",730630,2,65,정상
+P1123,LED Panel Light #24,"aluminum housing, energy-efficient, size 49, export packaging standard",940540,3,30,위험
+P1153,Rigid PCB Assembly #04,"aluminum-based PCB, 4-layer stack-up, size 15, export packaging standard",853400,3,30,위험
+P1023,Organic Cotton Shirt #24,"cotton-polyester blend, pre-shrunk, size 13, export packaging standard",610910,4,39,위험
+P1211,Urea Fertilizer #12,"46% nitrogen content, low biuret content, size 17, export packaging standard",310210,3,79,위험
+P1183,Wooden Office Desk #09,"FSC-certified wood, varnished finish, size 31, export packaging standard",940360,3,43,위험
+P1081,PP Packaging Box #07,"PET resin, airtight lid, size 37, export packaging standard",392310,5,47,위험
+P1039,Welded Steel Pipe #15,"alloy steel, threaded end, size 8, export packaging standard",730630,5,63,위험
+P1209,Granular Urea #10,"agricultural grade urea, bulk bag packaging, size 7, export packaging standard",310210,5,62,위험
+P1047,Steel Pipe Fitting #23,"carbon steel, corrosion resistant, size 5, export packaging standard",730630,4,51,위험
+P1094,PET Storage Case #20,"polypropylene, airtight lid, size 42, export packaging standard",392310,1,77,정상
+P1190,Wooden Dining Table #16,"birch plywood, reinforced joints, size 36, export packaging standard",940360,3,75,위험
+P1161,Printed Circuit Board #12,"aluminum-based PCB, gold-plated contacts, size 3, export packaging standard",853400,0,62,정상
+P1043,Welded Steel Pipe #19,"stainless steel, circular cross-section, size 18, export packaging standard",730630,3,43,위험
+P1145,Leather Dress Shoe #21,"full-grain leather, lace-up closure, size 45, export packaging standard",640351,1,45,위험
+P1182,Oak Wood Cabinet #08,"FSC-certified wood, flat-pack assembly, size 1, export packaging standard",940360,0,87,정상
+P1003,Cotton Jersey Top #04,"organic cotton, round neck, size 23, export packaging standard",610910,1,73,위험
+P1105,LED Panel Light #06,"die-cast aluminum, energy-efficient, size 39, export packaging standard",940540,3,56,위험
+P1053,Aluminum Wire #04,"aluminum alloy, coil wound, size 23, export packaging standard",760511,1,67,정상
+P1133,Leather Oxford Shoe #09,"synthetic leather sole, lace-up closure, size 26, export packaging standard",640351,4,37,위험
+P1227,Radial Tire #03,"reinforced sidewall, wet grip optimized, size 8, export packaging standard",401110,4,52,위험
+P1193,Wooden Dining Table #19,"FSC-certified wood, reinforced joints, size 46, export packaging standard",940360,5,46,위험
+P1232,Rubber Vehicle Tire #08,"steel-belted radial, DOT certified, size 7, export packaging standard",401110,1,73,정상
+P1049,Carbon Steel Tube #25,"galvanized steel, threaded end, size 26, export packaging standard",730630,1,60,위험
+P1163,Printed Circuit Board #14,"FR4 glass epoxy, gold-plated contacts, size 8, export packaging standard",853400,0,83,정상
+P1080,Plastic Bin #06,"polypropylene, airtight lid, size 33, export packaging standard",392310,4,44,위험
+P1034,Carbon Steel Tube #10,"stainless steel, seam-welded, size 6, export packaging standard",730630,3,56,위험
+P1206,Prilled Urea #07,"granular form, moisture-resistant packaging, size 38, export packaging standard",310210,0,94,정상
+P1007,Organic Cotton Shirt #08,"cotton-polyester blend, round neck, size 45, export packaging standard",610910,2,70,정상
+P1171,FR4 Circuit Board #22,"copper-clad laminate, 4-layer stack-up, size 27, export packaging standard",853400,3,63,위험
+P1110,LED Strip Lighting #11,"polycarbonate diffuser, IP65 rated, size 26, export packaging standard",940540,4,52,위험
+P1091,Plastic Bin #17,"PET resin, reusable, size 43, export packaging standard",392310,0,66,정상
+P1083,Plastic Storage Container #09,"PET resin, airtight lid, size 37, export packaging standard",392310,2,80,정상
+P1223,Granular Urea #24,"granular form, bulk bag packaging, size 33, export packaging standard",310210,3,62,위험
+P1228,Radial Tire #04,"steel-belted radial, all-season tread, size 32, export packaging standard",401110,2,58,위험
+P1089,PET Storage Case #15,"high-density polyethylene, reusable, size 3, export packaging standard",392310,5,39,위험
+P1008,Cotton Crew Neck Tee #09,"100% cotton, knitted, size 24, export packaging standard",610910,1,76,정상
+P1013,Cotton Crew Neck Tee #14,"100% cotton, short sleeve, size 22, export packaging standard",610910,4,62,위험
+P1059,Aluminum Alloy Wire #10,"6201 aluminum alloy, non-insulated, size 35, export packaging standard",760511,0,77,위험
+P1215,Urea Fertilizer #16,"46% nitrogen content, slow-release coating, size 45, export packaging standard",310210,3,71,위험
+P1131,Leather Ankle Boot #07,"genuine leather upper, cushioned insole, size 28, export packaging standard",640351,0,78,정상
+P1017,Cotton T-Shirt #18,"cotton-polyester blend, knitted, size 7, export packaging standard",610910,3,58,위험
+P1166,FR4 Circuit Board #17,"FR4 glass epoxy, 4-layer stack-up, size 24, export packaging standard",853400,5,62,위험
+P1072,Bare Aluminum Conductor #23,"6201 aluminum alloy, coil wound, size 32, export packaging standard",760511,0,86,정상
+P1220,Granular Urea #21,"coated urea, low biuret content, size 1, export packaging standard",310210,3,53,정상
+P1134,Genuine Leather Loafer #10,"full-grain leather, rubber outsole, size 6, export packaging standard",640351,3,42,위험
+P1204,Granular Urea #05,"coated urea, bulk bag packaging, size 9, export packaging standard",310210,0,71,정상
+P1230,All-Season Car Tire #06,"natural rubber blend, low rolling resistance, size 1, export packaging standard",401110,5,62,위험
+P1063,Bare Aluminum Conductor #14,"pure aluminum, high conductivity, size 46, export packaging standard",760511,3,43,위험
+P1054,Aluminum Wire Rod #05,"1350 aluminum, coil wound, size 30, export packaging standard",760511,1,58,위험
+P1107,LED Strip Lighting #08,"polycarbonate diffuser, energy-efficient, size 24, export packaging standard",940540,2,76,정상
+P1050,Bare Aluminum Conductor #01,"6201 aluminum alloy, non-insulated, size 32, export packaging standard",760511,5,46,위험
+P1239,Rubber Vehicle Tire #15,"reinforced sidewall, DOT certified, size 2, export packaging standard",401110,4,48,위험
+P1174,FR4 Circuit Board #25,"aluminum-based PCB, surface mount, size 30, export packaging standard",853400,1,76,정상
+P1208,Urea Fertilizer #09,"agricultural grade urea, bulk bag packaging, size 9, export packaging standard",310210,3,63,위험
+P1189,Oak Wood Cabinet #15,"FSC-certified wood, reinforced joints, size 32, export packaging standard",940360,5,45,위험
+P1246,All-Season Car Tire #22,"synthetic rubber compound, DOT certified, size 7, export packaging standard",401110,3,57,위험
+P1207,Prilled Urea #08,"granular form, moisture-resistant packaging, size 12, export packaging standard",310210,5,30,위험
+P1221,Prilled Urea #22,"granular form, slow-release coating, size 40, export packaging standard",310210,0,71,정상
+P1169,Printed Circuit Board #20,"aluminum-based PCB, surface mount, size 41, export packaging standard",853400,0,55,위험
+P1058,Aluminum Wire Rod #09,"1350 aluminum, drawn wire, size 9, export packaging standard",760511,0,73,정상
+P1048,Steel Pipe Fitting #24,"alloy steel, circular cross-section, size 20, export packaging standard",730630,5,57,위험
+P1088,PP Packaging Box #14,"high-density polyethylene, stackable, size 15, export packaging standard",392310,3,60,위험
+P1021,Cotton Crew Neck Tee #22,"organic cotton, knitted, size 30, export packaging standard",610910,2,45,위험
+P1057,Aluminum Wire #08,"aluminum alloy, non-insulated, size 10, export packaging standard",760511,4,39,위험
+P1203,Urea Fertilizer #04,"46% nitrogen content, bulk bag packaging, size 21, export packaging standard",310210,0,54,위험
+P1160,Multilayer PCB #11,"FR4 glass epoxy, surface mount, size 13, export packaging standard",853400,3,46,위험
+P1242,All-Season Car Tire #18,"reinforced sidewall, low rolling resistance, size 43, export packaging standard",401110,3,56,위험
+P1187,Wooden Dining Table #13,"solid oak wood, reinforced joints, size 23, export packaging standard",940360,0,61,정상
+P1191,Oak Wood Cabinet #17,"FSC-certified wood, scratch-resistant, size 35, export packaging standard",940360,5,34,위험
+P1129,Leather Oxford Shoe #05,"full-grain leather, lace-up closure, size 31, export packaging standard",640351,3,47,위험
+P1037,Carbon Steel Tube #13,"alloy steel, seam-welded, size 10, export packaging standard",730630,5,49,위험
+P1157,Multilayer PCB #08,"copper-clad laminate, 4-layer stack-up, size 33, export packaging standard",853400,5,39,위험
+P1235,All-Season Car Tire #11,"natural rubber blend, low rolling resistance, size 22, export packaging standard",401110,4,56,위험
+P1001,Cotton Jersey Top #02,"organic cotton, pre-shrunk, size 37, export packaging standard",610910,4,47,위험
+P1052,Aluminum Alloy Wire #03,"aluminum alloy, drawn wire, size 39, export packaging standard",760511,5,59,위험
+P1149,Leather Oxford Shoe #25,"cowhide leather, lace-up closure, size 11, export packaging standard",640351,2,60,정상
+P1130,Genuine Leather Loafer #06,"genuine leather upper, hand-stitched, size 2, export packaging standard",640351,3,63,위험
+P1151,Printed Circuit Board #02,"aluminum-based PCB, gold-plated contacts, size 23, export packaging standard",853400,2,42,위험
+P1103,LED Strip Lighting #04,"polycarbonate diffuser, IP65 rated, size 8, export packaging standard",940540,0,73,정상
+P1099,PET Storage Case #25,"polypropylene, transparent, size 1, export packaging standard",392310,0,73,정상
+P1116,LED Strip Lighting #17,"polycarbonate diffuser, flicker-free, size 47, export packaging standard",940540,0,80,정상
+P1087,Plastic Bin #13,"polypropylene, airtight lid, size 36, export packaging standard",392310,4,35,위험
+P1202,Nitrogen Fertilizer #03,"agricultural grade urea, slow-release coating, size 47, export packaging standard",310210,3,60,위험
+P1074,Bare Aluminum Conductor #25,"pure aluminum, drawn wire, size 36, export packaging standard",760511,3,38,위험
+P1214,Prilled Urea #15,"46% nitrogen content, moisture-resistant packaging, size 13, export packaging standard",310210,5,55,위험
+P1210,Nitrogen Fertilizer #11,"46% nitrogen content, slow-release coating, size 12, export packaging standard",310210,1,58,위험
+P1121,LED Downlight #22,"PC lens cover, IP65 rated, size 3, export packaging standard",940540,2,81,정상
+P1249,All-Season Car Tire #25,"synthetic rubber compound, DOT certified, size 2, export packaging standard",401110,5,44,위험
+P1020,Cotton Jersey Top #21,"100% cotton, round neck, size 35, export packaging standard",610910,2,61,정상
+P1188,Wooden Office Desk #14,"solid oak wood, scratch-resistant, size 43, export packaging standard",940360,5,31,위험
+P1071,Aluminum Wire Rod #22,"aluminum alloy, drawn wire, size 48, export packaging standard",760511,5,50,위험
+P1106,LED Panel Light #07,"polycarbonate diffuser, IP65 rated, size 11, export packaging standard",940540,5,31,정상
+P1014,Cotton T-Shirt #15,"combed cotton, knitted, size 32, export packaging standard",610910,3,65,위험
+P1092,PET Storage Case #18,"food-grade plastic, reusable, size 10, export packaging standard",392310,0,81,위험
+P1179,Wooden Office Desk #05,"FSC-certified wood, flat-pack assembly, size 28, export packaging standard",940360,5,55,위험
+P1102,LED Panel Light #03,"PC lens cover, flicker-free, size 15, export packaging standard",940540,2,75,정상

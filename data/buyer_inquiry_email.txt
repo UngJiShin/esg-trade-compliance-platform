@@ -1,0 +1,22 @@
+From: Anna Weber <anna.weber@nordicmetals.example>
+To: export@hanbit-metal.example
+Date: Tue, 15 Sep 2026 09:12
+Subject: Questions before signing - aluminium profile contract (200 bundles)
+
+Dear Sales Team,
+
+Thank you for the draft contract. Before we sign, our purchasing and finance teams have three questions.
+
+1) Origin: Your draft says the origin will be decided at shipment. Could you confirm that we may receive either Korean or Chinese origin material, depending on availability at the time of shipment?
+
+2) Tolerance: Our finance team prefers to allow a 3% difference between the invoice and packing list totals (quantity, amount and weight) without treating it as a document discrepancy. Is this acceptable?
+
+3) Shipping terms: Please confirm that the delivery term is FOB Incheon and that all 200 bundles will ship in one lot by 30 November 2026.
+
+We would appreciate your reply by the end of this week.
+
+Best regards,
+Anna Weber
+Purchasing Manager, Nordic Metals GmbH
+
+* This is a fictional email for training purposes only.
